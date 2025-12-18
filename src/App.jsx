@@ -9,38 +9,48 @@ import MoistureChart from './components/MoistureChart';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MLPredictions from './pages/Predictions';
+import Contact from './pages/Contact';
+import ChatBot from './pages/ChatBot';
 import { Toaster } from 'react-hot-toast';
+
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+
+// ... (other imports remain, but reusing existing block structure to minimize diff)
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {
     const { user, loading } = useAuth();
-    if (loading) return null; // Or a loading spinner
+    if (loading) return null; 
     return user ? children : <Navigate to="/login" />;
 };
 
-const DashboardLayout = () => {
+const MainLayout = ({ children }) => {
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-200 selection:bg-farm-accent/30 selection:text-emerald-200">
+        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-emerald-500/30 selection:text-emerald-900">
             <Header />
-            <main className="pt-24 px-6 lg:px-12 pb-12 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-4 space-y-8">
-                        <PoleOverview />
+            {children}
+        </div>
+    );
+};
+
+const DashboardContent = () => {
+    return (
+        <main className="pt-24 px-6 lg:px-12 pb-12 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-4 space-y-8">
+                    <PoleOverview />
+                </div>
+                <div className="lg:col-span-8 flex flex-col gap-8">
+                    <div className="h-[400px]">
+                        <MoistureChart />
                     </div>
-                    <div className="lg:col-span-8 flex flex-col gap-8">
-                        <div className="h-[400px]">
-                            <MoistureChart />
-                        </div>
-                        <div>
-                            <ControlCenter />
-                        </div>
+                    <div>
+                        <ControlCenter />
                     </div>
                 </div>
-            </main>
-             {/* Background ambient lighting effects */}
-             <div className="fixed top-20 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
-             <div className="fixed bottom-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
-        </div>
+            </div>
+        </main>
     );
 };
 
@@ -50,27 +60,17 @@ function App() {
       <AuthProvider>
         <FarmProvider>
             <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route 
-                    path="/" 
-                    element={
-                        <PrivateRoute>
-                            <DashboardLayout />
-                        </PrivateRoute>
-                    } 
-                />
-                <Route 
-                    path="/predictions" 
-                    element={
-                        <PrivateRoute>
-                           <div>
-                                <Header /> {/* Add Head here since DashboardLayout has it hardcoded, or refactor. Better to wrap Predictions in a layout or just add Header manually here for now */}
-                                <MLPredictions />
-                           </div>
-                        </PrivateRoute>
-                    } 
-                />
+                {/* Routes with Main Layout (Header + Content) */}
+                <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+                <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
+                <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
+
+                {/* Private Dashboard */}
+                <Route path="/dashboard" element={<PrivateRoute><MainLayout><Dashboard /></MainLayout></PrivateRoute>} />
+                
+                <Route path="/predictions" element={<PrivateRoute><MainLayout><MLPredictions /></MainLayout></PrivateRoute>} />
+                <Route path="/chatbot" element={<MainLayout><ChatBot /></MainLayout>} />
+                <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
             </Routes>
 
             <Toaster 

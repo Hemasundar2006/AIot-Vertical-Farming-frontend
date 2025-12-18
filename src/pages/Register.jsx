@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Lock, Mail, User } from 'lucide-react';
+import { Leaf, Lock, Mail, User, Phone, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -15,129 +17,158 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-        // Simple validation visualization could be added here, 
-        // essentially handled by toast in AuthContext roughly, but specific here is better.
-        // For now relying on context to keep it simple or adding a quick check.
-        alert("Passwords do not match"); // Quick fallback
+        alert("Passwords do not match"); 
         return;
     }
-
     setIsLoading(true);
-    const success = await register(name, email, password);
+    const success = await register(name, email, password, "Farmer");
     setIsLoading(false);
     if (success) {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
   return (
-    <div className="min-h-screen bg-farm-dark flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-purple-500/10 rounded-full blur-[100px]" />
-          <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-farm-accent/10 rounded-full blur-[100px]" />
-      </div>
-
-      <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative z-10">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-farm-accent/20 rounded-xl mb-4">
-            <Leaf className="text-farm-accent" size={32} />
-          </div>
-          <h2 className="text-2xl font-bold text-white">Create Account</h2>
-          <p className="text-slate-400 mt-2">Join to manage your vertical farm</p>
+    <div className="min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+        {/* Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+            <img 
+                src="/vertical_farm_background_lush.png" 
+                alt="Vertical Farm Background" 
+                className="w-full h-full object-cover"
+            />
+            {/* Dark Overlay for Readability */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-slate-500" />
-              </div>
-              <input
-                type="text"
-                required
-                className="block w-full pl-10 pr-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-farm-accent focus:border-farm-accent text-white placeholder-slate-500 transition-all"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+      <div className="w-full max-w-[500px] z-10 px-4 py-8">
+        {/* Glassmorphism Card */}
+        <div className="bg-white/80 backdrop-blur-xl border border-white/40 p-8 lg:p-10 rounded-[2rem] shadow-2xl relative overflow-hidden">
+            {/* Glossy Reflection Effect */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+
+            <div className="relative z-10">
+                <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-2 mb-2 text-[#2d4a22]">
+                         <Leaf size={28} />
+                         <span className="text-xl font-bold">AIoT Smart Vertical Farming</span>
+                    </div>
+                
+                    <h2 className="text-3xl font-bold text-slate-800">Create Account</h2>
+                    <p className="text-slate-600 mt-2 text-sm max-w-xs mx-auto">
+                        Join us to manage your smart vertical farm efficiently.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                
+                <div>
+                    <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <User className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                        type="text"
+                        required
+                        className="block w-full pl-11 pr-4 py-3.5 bg-white/60 border border-white/50 rounded-xl focus:ring-2 focus:ring-[#688557] focus:border-transparent text-slate-900 placeholder-slate-500 transition-all font-medium backdrop-blur-sm"
+                        placeholder="Full Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                    </div>
+                </div>
+
+                <div>
+                    <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <Mail className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                        type="email"
+                        required
+                        className="block w-full pl-11 pr-4 py-3.5 bg-white/60 border border-white/50 rounded-xl focus:ring-2 focus:ring-[#688557] focus:border-transparent text-slate-900 placeholder-slate-500 transition-all font-medium backdrop-blur-sm"
+                        placeholder="Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    </div>
+                </div>
+
+                <div>
+                    <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <Lock className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                         className="block w-full pl-11 pr-12 py-3.5 bg-white/60 border border-white/50 rounded-xl focus:ring-2 focus:ring-[#688557] focus:border-transparent text-slate-900 placeholder-slate-500 transition-all font-medium backdrop-blur-sm"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-slate-500 hover:text-slate-700 focus:outline-none"
+                    >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <Lock className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                         className="block w-full pl-11 pr-12 py-3.5 bg-white/60 border border-white/50 rounded-xl focus:ring-2 focus:ring-[#688557] focus:border-transparent text-slate-900 placeholder-slate-500 transition-all font-medium backdrop-blur-sm"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                     <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-slate-500 hover:text-slate-700 focus:outline-none"
+                    >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                    </div>
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full flex justify-center py-4 px-4 rounded-xl shadow-lg text-lg font-bold text-white bg-[#3e5233] hover:bg-[#2d3b25] transition-all transform hover:scale-[1.02] mt-2"
+                >
+                    {isLoading ? (
+                        <div className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        'Sign Up'
+                    )}
+                </button>
+                </form>
+
+                <p className="mt-8 text-center text-sm text-slate-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-bold text-[#3e5233] hover:underline transition-colors">
+                    Log In &gt;
+                </Link>
+                </p>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-500" />
-              </div>
-              <input
-                type="email"
-                required
-                className="block w-full pl-10 pr-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-farm-accent focus:border-farm-accent text-white placeholder-slate-500 transition-all"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-500" />
-              </div>
-              <input
-                type="password"
-                required
-                className="block w-full pl-10 pr-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-farm-accent focus:border-farm-accent text-white placeholder-slate-500 transition-all"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-500" />
-              </div>
-              <input
-                type="password"
-                required
-                className="block w-full pl-10 pr-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-farm-accent focus:border-farm-accent text-white placeholder-slate-500 transition-all"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-farm-accent hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-farm-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {isLoading ? (
-                    <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                    'Create Account'
-                )}
-            </button>
-          </div>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-400">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-farm-accent hover:text-emerald-400 transition-colors">
-            Sign in instead
-          </Link>
-        </p>
+        </div>
       </div>
+      
+       {/* Bottom Footer Links */}
+       <div className="absolute bottom-6 left-0 w-full text-center z-10 text-xs text-white/60 font-medium">
+          <span className="hover:text-white cursor-pointer mx-2">Privacy Policy</span>
+          <span>•</span>
+          <span className="hover:text-white cursor-pointer mx-2">Terms of Service</span>
+       </div>
     </div>
   );
 };

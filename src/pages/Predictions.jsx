@@ -1,221 +1,232 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target } from 'lucide-react';
+import React, { useState } from 'react';
+import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, ChevronRight, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 
-const PredictionCard = ({ title, value, subtext, icon: Icon, color }) => (
+const PredictionCard = ({ title, value, subtext, icon: Icon, color, trend }) => (
   <motion.div 
     whileHover={{ scale: 1.02 }}
-    className="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-2xl relative overflow-hidden"
+    className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 relative overflow-hidden group"
   >
-    <div className={`absolute top-0 right-0 p-3 opacity-10 ${color}`}>
-      <Icon size={100} />
+    <div className={`absolute top-0 right-0 p-4 opacity-[0.03] transform group-hover:scale-110 transition-transform duration-500`}>
+      <Icon size={120} className="text-slate-900" />
     </div>
+    
     <div className="relative z-10">
-      <div className={`p-3 rounded-lg inline-flex mb-4 ${color.replace('text-', 'bg-').replace('500', '500/20')} ${color}`}>
-        <Icon size={24} />
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color} bg-opacity-10 text-opacity-100`}>
+        <Icon size={24} className={color.replace('bg-', 'text-')} />
       </div>
-      <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider">{title}</h3>
-      <p className="text-2xl font-bold text-white mt-1">{value}</p>
-      <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+      
+      <h3 className="text-slate-500 text-sm font-bold uppercase tracking-wider">{title}</h3>
+      <div className="flex items-end gap-2 mt-1">
+          <p className="text-3xl font-extrabold text-slate-800">{value}</p>
+          {trend && (
+              <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md mb-1.5 flex items-center">
+                  <TrendingUp size={10} className="mr-0.5" /> {trend}
+              </span>
+          )}
+      </div>
+      <p className="text-xs text-slate-400 mt-3 font-medium flex items-center gap-1.5">
         <Activity size={12} /> {subtext}
       </p>
     </div>
   </motion.div>
 );
 
-const FeatureCard = ({ title, description, icon: Icon, delay }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="group p-6 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 hover:border-farm-accent/50 transition-all duration-300"
-  >
-    <div className="mb-4 p-4 rounded-full bg-slate-800 border border-slate-700 w-16 h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-      <Icon className="text-farm-accent group-hover:text-white" size={32} />
-    </div>
-    <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-    <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
-  </motion.div>
-);
-
 const MLPredictions = () => {
     const [analyzing, setAnalyzing] = useState(false);
-    const [lastUpdated, setLastUpdated] = useState(new Date());
+    const [activeTab, setActiveTab] = useState('yield');
 
-    const runUseAnalysis = () => {
+    const runAnalysis = () => {
         setAnalyzing(true);
-        setTimeout(() => {
-            setAnalyzing(false);
-            setLastUpdated(new Date());
-        }, 2000);
+        setTimeout(() => setAnalyzing(false), 2500);
     };
 
+    const yieldData = [
+        { name: 'Week 1', val: 4000 },
+        { name: 'Week 2', val: 3000 },
+        { name: 'Week 3', val: 5000 },
+        { name: 'Week 4', val: 4500 },
+        { name: 'Week 5', val: 6000 },
+        { name: 'Week 6', val: 5500 },
+        { name: 'Week 7', val: 6500 },
+    ];
+
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-200 p-6 pt-24 lg:px-12 max-w-7xl mx-auto">
-            
-            {/* Header Section */}
-            <div className="mb-12 text-center max-w-3xl mx-auto">
-                <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-farm-accent/10 border border-farm-accent/20 text-farm-accent text-sm font-medium mb-4"
-                >
-                    <Brain size={16} /> AIoT-Driven Intelligence
-                </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                    Smart Crop <span className="text-transparent bg-clip-text bg-gradient-to-r from-farm-accent to-blue-500">Prediction Engine</span>
-                </h1>
-                <p className="text-slate-400 text-lg">
-                    Leveraging Machine Learning to analyze real-time soil data, optimize irrigation cycles, and ensure resource sustainability with autonomous control.
-                </p>
-            </div>
-
-            {/* Live Predictions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                <PredictionCard 
-                    title="Next Irrigation" 
-                    value="45 mins" 
-                    subtext="Based on moisture loss rate"
-                    icon={Droplets}
-                    color="text-blue-500"
-                />
-                <PredictionCard 
-                    title="Pump Efficiency" 
-                    value="94.2%" 
-                    subtext="+15% vs manual control"
-                    icon={Zap}
-                    color="text-yellow-500"
-                />
-                <PredictionCard 
-                    title="Growth Rate" 
-                    value="Optimal" 
-                    subtext="Matching expected biological curve"
-                    icon={Sprout}
-                    color="text-emerald-500"
-                />
-                <PredictionCard 
-                    title="Prediction Confidence" 
-                    value="98.5%" 
-                    subtext="Model: Gradient Boosting (v2.1)"
-                    icon={Brain}
-                    color="text-purple-500"
-                />
-            </div>
-
-            {/* Main Content Split */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <div className="min-h-screen bg-[#f1f5f9] text-slate-900 pt-24 pb-12 px-4 lg:px-8 font-sans">
+            <div className="max-w-[1400px] mx-auto">
                 
-                {/* AI Control Logic Visualization */}
-                <div className="lg:col-span-2 bg-slate-800/50 rounded-3xl p-8 border border-white/5 relative overflow-hidden">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-bold text-white">Autonomous Decision Logic</h2>
-                        <button 
-                            onClick={runUseAnalysis}
-                            disabled={analyzing}
-                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                            {analyzing ? <Activity className="animate-spin" size={16}/> : <Scan size={16}/>}
-                            {analyzing ? 'Analyzing...' : 'Run Diagnostics'}
-                        </button>
-                    </div>
-
-                    <div className="relative">
-                        {/* Flowchart Visualization */}
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
-                            
-                            <div className={`p-4 rounded-xl border-2 ${analyzing ? 'border-farm-accent animate-pulse' : 'border-slate-600'} bg-slate-900 w-full md:w-1/4`}>
-                                <div className="text-farm-accent mb-2 flex justify-center"><Target /></div>
-                                <h4 className="font-bold text-white">Input</h4>
-                                <p className="text-xs text-slate-400">Sensor Data (Moisture, Temp)</p>
-                            </div>
-
-                            <div className="hidden md:block h-0.5 w-12 bg-slate-600"></div>
-
-                            <div className={`p-4 rounded-xl border-2 ${analyzing ? 'border-purple-500 animate-pulse' : 'border-slate-600'} bg-slate-900 w-full md:w-1/4`}>
-                                <div className="text-purple-500 mb-2 flex justify-center"><Brain /></div>
-                                <h4 className="font-bold text-white">Process</h4>
-                                <p className="text-xs text-slate-400">ML Algorithm & Thresholds</p>
-                            </div>
-
-                            <div className="hidden md:block h-0.5 w-12 bg-slate-600"></div>
-
-                            <div className={`p-4 rounded-xl border-2 ${analyzing ? 'border-blue-500 animate-pulse' : 'border-slate-600'} bg-slate-900 w-full md:w-1/4`}>
-                                <div className="text-blue-500 mb-2 flex justify-center"><Zap /></div>
-                                <h4 className="font-bold text-white">Action</h4>
-                                <p className="text-xs text-slate-400">Pump Actuation (ON/OFF)</p>
-                            </div>
-
-                        </div>
-                        
-                        <div className="mt-8 p-4 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
-                             <p className="font-mono text-xs text-green-400">
-                                 • System Status: ACTIVE_MONITORING<br/>
-                                 • Last Inference: {lastUpdated.toLocaleTimeString()}<br/>
-                                 • Decision: MAINTAIN_CURRENT_STATE (Moisture levels adequate)<br/>
-                                 • Resource Saving: Water usage reduced by 2.5L today.
-                             </p>
-                        </div>
-                    </div>
+                {/* Header */}
+                <div className="mb-10 text-center max-w-2xl mx-auto">
+                    <motion.div 
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#688557]/10 border border-[#688557]/20 text-[#688557] text-xs font-bold uppercase tracking-wider mb-4"
+                    >
+                        <Brain size={14} /> AIoT Intelligence Engine
+                    </motion.div>
+                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+                        Smart Crop <span className="text-[#688557]">Predictions</span>
+                    </h1>
+                    <p className="text-slate-500 text-lg">
+                        Real-time machine learning insights to optimize your vertical farm's yield, resource usage, and harvest timing.
+                    </p>
                 </div>
 
-                {/* System Specs Sidebar */}
-                <div className="bg-gradient-to-br from-farm-card to-slate-900 rounded-3xl p-8 border border-white/5">
-                    <h3 className="text-xl font-bold text-white mb-6">System Architecture</h3>
+                {/* Top Prediction Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <PredictionCard 
+                        title="Projected Yield" 
+                        value="125 kg" 
+                        subtext="Expected harvest in 5 days"
+                        icon={Sprout}
+                        color="bg-emerald-500"
+                        trend="+12%"
+                    />
+                    <PredictionCard 
+                        title="Water Savings" 
+                        value="3,240 L" 
+                        subtext="Projected monthly saving"
+                        icon={Droplets}
+                        color="bg-blue-500"
+                        trend="+8%"
+                    />
+                    <PredictionCard 
+                        title="Energy Efficiency" 
+                        value="94.2%" 
+                        subtext="Optimized LED schedules"
+                        icon={Zap}
+                        color="bg-yellow-500"
+                    />
+                     <PredictionCard 
+                        title="Model Accuracy" 
+                        value="98.5%" 
+                        subtext="Random Forest Regressor v2.1"
+                        icon={Brain}
+                        color="bg-purple-500"
+                    />
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
-                    <div className="space-y-6">
-                        <div className="flex items-start gap-4">
-                            <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><Bot /></div>
+                    {/* Left Col: Analysis Charts */}
+                    <div className="lg:col-span-8 bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                             <div>
-                                <h4 className="font-semibold text-white">Training Model</h4>
-                                <p className="text-sm text-slate-400">Random Forest Regressor trained on 10k+ sensor data points.</p>
+                                <h3 className="text-xl font-bold text-slate-800">Growth Analysis</h3>
+                                <p className="text-slate-400 text-sm">Predicted vs Actual performance metrics</p>
                             </div>
-                        </div>
-                        
-                        <div className="flex items-start gap-4">
-                            <div className="p-2 bg-orange-500/20 rounded-lg text-orange-400"><Timer /></div>
-                            <div>
-                                <h4 className="font-semibold text-white">Latency</h4>
-                                <p className="text-sm text-slate-400">Real-time processing with &lt;200ms sensor-to-action delay.</p>
+                            <div className="flex bg-slate-100 p-1 rounded-xl">
+                                {['yield', 'resources', 'health'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all capitalize ${
+                                            activeTab === tab 
+                                                ? 'bg-white text-[#688557] shadow-sm' 
+                                                : 'text-slate-500 hover:text-slate-700'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="flex items-start gap-4">
-                            <div className="p-2 bg-green-500/20 rounded-lg text-green-400"><Activity /></div>
-                            <div>
-                                <h4 className="font-semibold text-white">Scalability</h4>
-                                <p className="text-sm text-slate-400">Single vertical pole architecture supporting multiple soil types.</p>
-                            </div>
+                        <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={yieldData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorYield" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#688557" stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor="#688557" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        itemStyle={{ color: '#688557', fontWeight: 'bold' }}
+                                    />
+                                    <Area type="monotone" dataKey="val" stroke="#688557" strokeWidth={3} fillOpacity={1} fill="url(#colorYield)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
+
+                    {/* Right Col: AI Logic & Actions */}
+                    <div className="lg:col-span-4 flex flex-col gap-6">
+                        
+                        {/* Logic Visualizer */}
+                        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                             {/* Background Circuit Pattern */}
+                             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                             
+                             <div className="relative z-10">
+                                 <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                     <Scan className="text-[#688557]" /> Autonomous Logic
+                                 </h3>
+
+                                 <div className="space-y-6 relative">
+                                     {/* Connecting Line */}
+                                     <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-700"></div>
+
+                                     <div className="relative pl-10">
+                                         <div className="absolute left-2.5 top-1.5 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-slate-900"></div>
+                                         <h4 className="text-sm font-bold text-blue-400">Input Processing</h4>
+                                         <p className="text-xs text-slate-400 mt-1">Analyzing moisture levels from 12 sensors.</p>
+                                     </div>
+
+                                     <div className="relative pl-10">
+                                         <div className={`absolute left-2.5 top-1.5 w-3 h-3 bg-purple-500 rounded-full ring-4 ring-slate-900 ${analyzing ? 'animate-ping' : ''}`}></div>
+                                         <h4 className="text-sm font-bold text-purple-400">Inference</h4>
+                                         <p className="text-xs text-slate-400 mt-1">Comparing against optimal growth curves.</p>
+                                     </div>
+
+                                     <div className="relative pl-10">
+                                         <div className="absolute left-2.5 top-1.5 w-3 h-3 bg-emerald-500 rounded-full ring-4 ring-slate-900"></div>
+                                         <h4 className="text-sm font-bold text-emerald-400">Decision</h4>
+                                         <p className="text-xs text-slate-400 mt-1">Recommendation: Increase nutrient flow by 5%.</p>
+                                     </div>
+                                 </div>
+
+                                 <button 
+                                    onClick={runAnalysis}
+                                    disabled={analyzing}
+                                    className="w-full mt-8 py-3 bg-[#688557] hover:bg-[#5a744b] rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                 >
+                                     {analyzing ? <Activity size={16} className="animate-spin" /> : <Zap size={16} />}
+                                     {analyzing ? 'Running Analysis...' : 'Run New Diagnostics'}
+                                 </button>
+                             </div>
+                        </div>
+
+                         {/* Quick Actions */}
+                        <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100">
+                            <h3 className="text-md font-bold text-slate-800 mb-4">Optimization Suggestions</h3>
+                            <div className="space-y-3">
+                                <button className="w-full p-4 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-100 text-left transition-colors group">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-bold text-orange-600 uppercase">Harvesting</span>
+                                        <ChevronRight size={16} className="text-orange-400 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-700">Schedule partial harvest for Layer 2 next Tuesday.</p>
+                                </button>
+                                <button className="w-full p-4 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 text-left transition-colors group">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-bold text-blue-600 uppercase">Irrigation</span>
+                                        <ChevronRight size={16} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-700">Reduce water cycle duration by 10 mins.</p>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-
             </div>
-
-            {/* Future Roadmap Section */}
-            <div className="border-t border-slate-800 pt-16">
-                <h2 className="text-2xl font-bold text-white mb-8 text-center">Future Enhancements</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FeatureCard 
-                        title="Computer Vision" 
-                        description="Integration of image processing to detect unwanted plants (weeds) and diseases early."
-                        icon={Scan}
-                        delay={0.1}
-                    />
-                    <FeatureCard 
-                        title="Robotic Harvesting" 
-                        description="Automated robotic arms for precise harvesting, reducing labor costs and human error."
-                        icon={Bot}
-                        delay={0.2}
-                    />
-                    <FeatureCard 
-                        title="Drone Spraying" 
-                        description="Autonomous drone systems for targeted pesticide application based on AI analysis."
-                        icon={Target}
-                        delay={0.3}
-                    />
-                </div>
-            </div>
-
         </div>
     );
 };
