@@ -8,6 +8,7 @@ import ControlCenter from './components/ControlCenter';
 import MoistureChart from './components/MoistureChart';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import MLPredictions from './pages/Predictions';
 import { Toaster } from 'react-hot-toast';
 
 // Private Route Wrapper
@@ -56,6 +57,17 @@ function App() {
                     element={
                         <PrivateRoute>
                             <DashboardLayout />
+                        </PrivateRoute>
+                    } 
+                />
+                <Route 
+                    path="/predictions" 
+                    element={
+                        <PrivateRoute>
+                           <div>
+                                <Header /> {/* Add Head here since DashboardLayout has it hardcoded, or refactor. Better to wrap Predictions in a layout or just add Header manually here for now */}
+                                <MLPredictions />
+                           </div>
                         </PrivateRoute>
                     } 
                 />

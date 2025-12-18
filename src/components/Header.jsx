@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, Bell, Settings, LogOut, User } from 'lucide-react';
+import { Leaf, Bell, Settings, LogOut, User, Brain } from 'lucide-react';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +37,15 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-4">
+           {/* Add Navigation Link */}
+           <button 
+             onClick={() => navigate('/predictions')}
+             className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-slate-700"
+           >
+              <Brain size={18} />
+              <span>AI Insight</span>
+           </button>
+
            <button className="relative p-2 text-slate-400 hover:text-white transition-colors">
              <Bell size={20} />
              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900" />
