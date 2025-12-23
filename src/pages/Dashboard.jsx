@@ -1,247 +1,251 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
-import { Thermometer, Droplets, Wind, CloudFog, Zap, Activity, ChevronRight, Bell } from 'lucide-react';
+import { Thermometer, Droplets, Wind, CloudFog, Zap, Activity, ChevronRight, Sun, Gauge, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
     const { user } = useAuth();
-    const { layers, isConnected, togglePump } = useFarm();
+    const { layers, isConnected, togglePump, lastUpdated, isDemoMode } = useFarm();
     const navigate = useNavigate();
 
-    // Mock Overall Data
-    const overallStats = {
-        avgTemp: 23.9,
-        avgHumidity: 62.4,
-        airQuality: 'Good (59 AQI)',
-        co2: 446
-    };
+    // Calculate Overall Stats from "layers" (Zones)
+    const overallStats = useMemo(() => {
+        const zones = Object.values(layers);
+        if (zones.length === 0) return { avgTemp: 0, avgHumidity: 0, avgGas: 0, avgLight: 0 };
 
-    // Render Layer Card
-    const LayerCard = ({ layer }) => {
-        const isPumpOn = layer.pumpInfo.status;
+        const totalTemp = zones.reduce((acc, z) => acc + (parseFloat(z.temperature) || 0), 0);
+        const totalHum = zones.reduce((acc, z) => acc + (parseFloat(z.humidity) || 0), 0);
+        const totalGas = zones.reduce((acc, z) => acc + (parseFloat(z.gas) || 0), 0);
+        
+        return {
+            avgTemp: (totalTemp / zones.length).toFixed(1),
+            avgHumidity: (totalHum / zones.length).toFixed(1),
+            avgGas: Math.round(totalGas / zones.length),
+        };
+    }, [layers]);
+
+    // Zone/Layer Card Component
+    const ZoneCard = ({ zone }) => {
+        const isPumpOn = zone.pumpInfo.status;
         
         return (
-            <div className="relative overflow-hidden rounded-[2rem] h-[180px] group shadow-xl transition-all hover:scale-[1.01]">
-                {/* Background Image/Gradient */}
-                <div className="absolute inset-0 bg-[#0f281e]">
-                     <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 to-transparent z-10" />
-                     {/* Subtle abstract texture or simple dark bg */}
-                     <div className="absolute right-0 top-0 h-full w-1/2 bg-[url('/vertical_farm_background_lush.png')] bg-cover bg-center opacity-40 mix-blend-overlay" />
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
+            >
+                {/* Header Gradient */}
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-10" />
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                    <CloudFog size={120} />
                 </div>
 
-                <div className="relative z-20 p-6 h-full flex flex-col justify-between">
+                <div className="relative p-6">
                     {/* Header */}
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-500/20 rounded-xl backdrop-blur-md border border-emerald-500/30">
-                            <Droplets size={20} className="text-emerald-400" />
+                    <div className="flex justify-between items-start mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 shadow-inner">
+                                <Activity size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800">{zone.name}</h3>
+                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                                    ID: {zone.id} • {isConnected ? 'Live' : 'Connecting...'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-white font-bold text-lg leading-tight">{layer.name}</h3>
-                            <p className="text-emerald-200/60 text-xs uppercase tracking-wider">Layer {layer.id}</p>
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide border ${isPumpOn ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                            PUMP {isPumpOn ? 'ACTIVE' : 'IDLE'}
                         </div>
                     </div>
 
-                    {/* Stats & Controls Row */}
-                    <div className="flex items-end justify-between gap-4 mt-4">
-                        
-                        {/* Moisture Progress */}
-                        <div className="flex-1 max-w-[50%]">
-                            <div className="flex justify-between text-xs mb-2">
-                                <span className="text-emerald-100/80 font-medium">Soil Moisture</span>
-                                <span className="text-white font-bold">{layer.moisture}%</span>
-                            </div>
-                            <div className="h-3 w-full bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm border border-white/5">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${layer.moisture}%` }}
-                                    transition={{ duration: 1 }}
-                                    className={`h-full rounded-full ${
-                                        layer.moisture < 30 ? 'bg-red-500' : 'bg-gradient-to-r from-emerald-500 to-green-300'
-                                    }`} 
-                                />
-                            </div>
-                            {/* Auto Mode Tag */}
-                             <div className="mt-2">
-                                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
-                                    AUTO MODE
-                                </span>
-                             </div>
-                        </div>
+                    {/* Sensor Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                         <SensorBadge icon={Thermometer} label="Temp" value={`${zone.temperature}°C`} color="text-orange-500" bg="bg-orange-50" />
+                         <SensorBadge icon={Droplets} label="Humidity" value={`${zone.humidity}%`} color="text-blue-500" bg="bg-blue-50" />
+                         <SensorBadge icon={Gauge} label="Soil" value={`${zone.moisture}`} color="text-emerald-600" bg="bg-emerald-50" />
+                         <SensorBadge icon={Wind} label="Gas" value={`${zone.gas}`} color="text-purple-500" bg="bg-purple-50" />
+                    </div>
+                    
+                    {/* Light Level Bar */}
+                    <div className="mb-6">
+                         <div className="flex justify-between items-center mb-2">
+                             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1"><Sun size={12}/> Light Intensity</span>
+                             <span className="text-xs font-bold text-amber-500">{zone.light} Lx</span>
+                         </div>
+                         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                             <div 
+                                className="h-full bg-gradient-to-r from-amber-300 to-amber-500 rounded-full transition-all duration-1000"
+                                style={{ width: `${Math.min(100, (zone.light / 1000) * 100)}%` }} 
+                             />
+                         </div>
+                    </div>
 
-                        {/* Pump Controls */}
-                        <div className="flex items-center gap-3">
-                             <div className="hidden sm:block">
-                                  {/* Pump Illustration (CSS or Image) */}
-                                  <div className={`w-12 h-12 relative transition-all ${isPumpOn ? 'animate-pulse' : 'opacity-50 grayscale'}`}>
-                                      <img src="/pump-icon.svg" className="w-full h-full" alt="Pump" onError={(e) => {
-                                          e.target.onerror = null;
-                                          e.target.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9Imx1Y2lkZSBsdWNpZGUtY3lsaW5kZXIiPjxlbGxpcHNlIGN4PSIxMiIgY3k9IjUiIHJ4PSI5IiByeT0iMyIvPjxwYXRoIGQ9Ik0zIDV2MTRjMCAxLjY2IDQgMyA5IDNzOS0xLjM0IDktM1Y1Ii8+PC9zdmc+"
-                                      }}/>
-                                  </div>
-                             </div>
-                             
-                             <div className="flex flex-col gap-2">
-                                <div className="px-3 py-1 bg-white/10 rounded backdrop-blur text-xs text-white font-mono text-center border border-white/10">
-                                    Motor {layer.id} <span className={isPumpOn ? 'text-green-400' : 'text-slate-400'}>{isPumpOn ? 'ON' : 'OFF'}</span>
-                                </div>
-                                <button
-                                    onClick={() => togglePump(layer.id)}
-                                    className={`px-4 py-2 rounded-lg text-xs font-bold text-white shadow-lg transition-all flex items-center gap-2 ${
-                                        isPumpOn 
-                                            ? 'bg-red-500/90 hover:bg-red-600 border border-red-400/50' 
-                                            : 'bg-emerald-600/90 hover:bg-emerald-700 border border-emerald-400/50'
-                                    }`}
-                                >
-                                    <Droplets size={12} className="fill-current" />
-                                    {isPumpOn ? 'Turn OFF Pump' : 'Turn ON Pump'}
-                                </button>
-                             </div>
+                    {/* Controls */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div className="text-xs text-slate-400">
+                            Status: <span className="text-slate-600 font-semibold">{isPumpOn ? 'Watering...' : 'Monitoring'}</span>
                         </div>
-
+                        <button
+                            onClick={() => togglePump(zone.id)}
+                            className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2 ${
+                                isPumpOn 
+                                    ? 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200' 
+                                    : 'bg-emerald-600 text-emerald-50 hover:bg-emerald-700 hover:shadow-emerald-200'
+                            }`}
+                        >
+                            <Zap size={14} className={isPumpOn ? "" : "fill-current"} />
+                            {isPumpOn ? 'Stop Pump' : 'Start Pump'}
+                        </button>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         );
     };
 
     return (
-        <main className="min-h-screen bg-[#f1f5f9] pt-24 pb-12 px-4 lg:px-8 font-sans">
-             <div className="max-w-[1400px] mx-auto">
+        <main className="min-h-screen bg-[#f8fafc] pt-28 pb-12 px-4 lg:px-8 font-sans">
+             <div className="max-w-[1600px] mx-auto">
                 
-                {/* Page Header */}
-                <div className="mb-8">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                        <Activity size={14} /> <span>Dashboard</span>
+                {/* Page Header - Improved Responsiveness */}
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 lg:mb-10">
+                    <div>
+                        <div className="flex items-center gap-2 text-sm text-emerald-600 mb-2 font-medium bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100">
+                            <Activity size={14} /> <span>Live Dashboard</span>
+                        </div>
+                        <h1 className="text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+                            Farm <span className="text-emerald-600">Overview</span>
+                        </h1>
+                        <p className="text-slate-500 mt-2 text-base lg:text-lg">
+                            Results from {Object.keys(layers).length} Active Zones
+                        </p>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-[#1e293b]">
-                        AIoT Smart Vertical Farming <span className="text-[#688557]">Dashboard</span>
-                    </h1>
-                    <p className="text-slate-500 mt-1">
-                        Welcome, {user?.name || 'Farmer'}! Monitor and manage your smart vertical farm efficiently.
-                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end gap-3">
+                        {isDemoMode && (
+                            <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
+                                DEMO MODE
+                            </span>
+                        )}
+                        <div className="flex items-center gap-2 text-slate-400 text-sm bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 w-full sm:w-auto justify-center">
+                            <Clock size={16} />
+                            <span>Last Updated: <span className="text-slate-700 font-mono font-bold whitespace-nowrap">
+                                {lastUpdated ? (lastUpdated.includes(',') ? lastUpdated : `Today, ${lastUpdated}`) : 'Syncing...'}
+                            </span></span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Top Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                {/* Overall Stats Cards - Responsive Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8 lg:mb-12">
                     <StatCard 
                         icon={Thermometer} 
-                        label="Avg. Temperature" 
+                        label="Avg. Temp" 
                         value={`${overallStats.avgTemp}°C`} 
-                        color="orange" 
-                        bgColor="bg-orange-50"
-                        iconBg="bg-orange-100"
-                        iconColor="text-orange-500"
+                        sublabel="Optimum: 24°C"
+                        color="text-orange-500" 
+                        bgColor="bg-white"
+                        trend="+1.2%"
                     />
                     <StatCard 
                         icon={Droplets} 
                         label="Avg. Humidity" 
                         value={`${overallStats.avgHumidity}%`} 
-                        color="blue" 
-                         bgColor="bg-blue-50"
-                        iconBg="bg-blue-100"
-                        iconColor="text-blue-500"
+                        sublabel="Optimum: 60%"
+                        color="text-blue-500" 
+                        bgColor="bg-white"
+                        trend="-0.5%"
                     />
                      <StatCard 
                         icon={Wind} 
-                        label="Air Quality" 
-                        value={overallStats.airQuality} 
-                        color="green" 
-                         bgColor="bg-green-50"
-                        iconBg="bg-green-100"
-                        iconColor="text-green-600"
+                        label="Avg. Air Quality" 
+                        value={`${overallStats.avgGas}`} 
+                        sublabel="PPM"
+                        color="text-purple-500" 
+                        bgColor="bg-white"
+                        trend="Stable"
                     />
                      <StatCard 
-                        icon={CloudFog} 
-                        label="CO2 Level" 
-                        value={`${overallStats.co2} ppm`} 
-                        color="teal" 
-                         bgColor="bg-teal-50"
-                        iconBg="bg-teal-100"
-                        iconColor="text-teal-600"
+                        icon={Zap} 
+                        label="System Status" 
+                        value={isConnected ? "Online" : "Offline"} 
+                        sublabel={isConnected ? "Data Streaming" : "Check Connection"}
+                        color={isConnected ? "text-emerald-500" : "text-red-500"}
+                        bgColor="bg-white"
+                        trend="Live"
                     />
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                {/* Main Zone Grid - Responsive Layout */}
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
                     
-                    {/* Left Column: Layers (Cards) */}
-                    <div className="xl:col-span-8 space-y-6">
-                        {Object.values(layers).map((layer) => (
-                            <LayerCard key={layer.id} layer={layer} />
-                        ))}
+                    {/* Left: Zones */}
+                    <div className="xl:col-span-8 flex flex-col gap-6 lg:gap-8 order-2 xl:order-1">
+                         <div className="flex items-center justify-between">
+                            <h2 className="text-xl lg:text-2xl font-bold text-slate-800">Active Zones</h2>
+                         </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                            {Object.values(layers).map((layer) => (
+                                <ZoneCard key={layer.id} zone={layer} />
+                            ))}
+                         </div>
                     </div>
 
-                    {/* Right Column: Sidebar (Tower & Overview) */}
-                    <div className="xl:col-span-4 flex flex-col gap-6">
+                    {/* Right: Analytics / Sidebar - Reordered for Mobile */}
+                    <div className="xl:col-span-4 space-y-6 lg:space-y-8 order-1 xl:order-2">
                         
+                        {/* Environmental Chart */}
+                        <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-xl border border-slate-100 relative overflow-hidden">
+                             <div className="flex justify-between items-center mb-6 relative z-10">
+                                 <h3 className="font-bold text-slate-800 text-lg">Growth Index</h3>
+                                 <button className="p-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                                     <ChevronRight size={16} className="text-slate-400" />
+                                 </button>
+                             </div>
 
-
-                        {/* Overview Stats Card */}
-                        <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100">
-                             <h3 className="text-lg font-bold text-slate-800 mb-6">Overview</h3>
-                             
-                             {/* Mini Chart */}
-                             <div className="h-32 w-full mb-6">
-                                 <div className="flex justify-between items-end mb-2 px-1">
-                                     <span className="text-xs text-slate-400">Average CO2 Level</span>
-                                     <span className="text-sm font-bold text-slate-700">435 <span className="text-[10px] text-slate-400">ppm</span></span>
-                                 </div>
+                             {/* Chart */}
+                             <div className="h-40 w-full relative z-10">
                                  <ResponsiveContainer width="100%" height="100%">
                                      <AreaChart data={[
-                                         {name: 'Mon', val: 400}, {name: 'Tue', val: 420}, {name: 'Wed', val: 410}, 
-                                         {name: 'Thu', val: 440}, {name: 'Fri', val: 435}, {name: 'Sat', val: 450}
+                                         {name: '1', val: 30}, {name: '2', val: 40}, {name: '3', val: 35}, 
+                                         {name: '4', val: 50}, {name: '5', val: 45}, {name: '6', val: 60},
+                                         {name: '7', val: 55}, {name: '8', val: 70}
                                      ]}>
                                          <defs>
-                                             <linearGradient id="colorCo2" x1="0" y1="0" x2="0" y2="1">
-                                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                                             <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
+                                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                              </linearGradient>
                                          </defs>
-                                         <Area type="monotone" dataKey="val" stroke="#10b981" fillOpacity={1} fill="url(#colorCo2)" strokeWidth={2} />
+                                         <Area type="monotone" dataKey="val" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorGrowth)" />
                                      </AreaChart>
                                  </ResponsiveContainer>
                              </div>
-
-                             {/* Usage Stats List */}
-                             <div className="space-y-4">
-                                 <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50/50 border border-blue-100">
-                                     <div className="p-2 bg-blue-100 rounded-lg text-blue-500">
-                                         <Droplets size={16} />
-                                     </div>
-                                     <div>
-                                         <p className="text-xs text-slate-500 font-medium">Overall Water Usage</p>
-                                         <p className="text-sm font-bold text-slate-800">34.2 L</p>
-                                     </div>
-                                 </div>
-                                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100">
-                                     <div className="p-2 bg-slate-200 rounded-lg text-slate-600">
-                                         <Zap size={16} />
-                                     </div>
-                                     <div>
-                                         <p className="text-xs text-slate-500 font-medium">Overall Pump Usage</p>
-                                         <p className="text-sm font-bold text-slate-800">18.4 hrs</p>
-                                     </div>
-                                 </div>
+                             
+                             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-500">
+                                 <span>Efficiency Rate:</span>
+                                 <span className="font-bold text-emerald-600">94%</span>
                              </div>
+                        </div>
 
-                             {/* ML Predictions Button */}
-                             <div className="mt-6 pt-6 border-t border-slate-100">
-                                 <div className="flex items-center justify-between mb-3">
-                                     <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                                         <Activity size={16} className="text-[#688557]" /> ML Predictions
-                                     </h4>
-                                     <ChevronRight size={16} className="text-slate-400" />
-                                 </div>
-                                 <button 
-                                    onClick={() => navigate('/predictions')}
-                                    className="w-full py-3 bg-[#3e5233] hover:bg-[#2d3b25] text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/10 transition-all flex items-center justify-center gap-2"
-                                 >
-                                     View Predictions <ChevronRight size={14} />
-                                 </button>
-                             </div>
+                        {/* Quick Actions */}
+                        <div className="bg-emerald-900 rounded-[2rem] p-6 lg:p-8 shadow-2xl relative overflow-hidden text-white">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            
+                            <h3 className="font-bold text-2xl mb-2 relative z-10">AI Insights</h3>
+                            <p className="text-emerald-200/80 mb-6 text-sm relative z-10">
+                                Crop health analysis suggests increasing moisture in Zone 2 by 5%.
+                            </p>
+
+                            <button 
+                                onClick={() => navigate('/predictions')}
+                                className="w-full py-4 bg-white text-emerald-900 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 relative z-10"
+                            >
+                                View Detailed Report <ChevronRight size={16} />
+                            </button>
                         </div>
 
                     </div>
@@ -251,14 +255,35 @@ const Dashboard = () => {
     );
 };
 
-const StatCard = ({ icon: Icon, label, value, bgColor, iconBg, iconColor }) => (
-    <div className={`p-5 rounded-2xl ${bgColor} border border-white/50 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1`}>
-        <div className={`p-3 rounded-xl ${iconBg} ${iconColor}`}>
-            <Icon size={24} />
+// Helper Components
+const SensorBadge = ({ icon: Icon, label, value, color, bg }) => (
+    <div className={`flex flex-col gap-1 p-3 rounded-2xl ${bg} border border-opacity-50 border-slate-100`}>
+        <div className={`flex items-center gap-2 ${color}`}>
+            <Icon size={16} />
+            <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
+        </div>
+        <span className="text-lg font-bold text-slate-700">{value}</span>
+    </div>
+);
+
+const StatCard = ({ icon: Icon, label, value, sublabel, color, bgColor, trend }) => (
+    <div className={`p-6 rounded-[2rem] ${bgColor} border border-slate-100 shadow-lg shadow-slate-100/50 flex flex-col justify-between h-36 hover:-translate-y-1 transition-transform duration-300`}>
+        <div className="flex justify-between items-start">
+            <div className={`p-3 rounded-2xl ${color.replace('text', 'bg')}/10 ${color}`}>
+                <Icon size={22} />
+            </div>
+            {trend && (
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${trend.includes('+') ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                    {trend}
+                </span>
+            )}
         </div>
         <div>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</p>
-            <p className="text-xl font-extrabold text-slate-800 mt-0.5">{value}</p>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wide mb-1">{label}</p>
+            <div className="flex items-baseline gap-2">
+                <h4 className="text-2xl font-black text-slate-800">{value}</h4>
+                <span className="text-xs text-slate-400 font-medium">{sublabel}</span>
+            </div>
         </div>
     </div>
 );

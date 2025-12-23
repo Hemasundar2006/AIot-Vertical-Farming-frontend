@@ -43,7 +43,7 @@ const Header = () => {
             <Leaf color="white" size={24} />
             </div>
             <div>
-            <h1 className="text-xl font-bold text-white tracking-wide">Vertical<span className="text-emerald-200">Grow</span></h1>
+            <h1 className="text-xl font-bold text-green-300 tracking-wide">A<span className="text-white">gri<span className="text-green-300">N<span className="text-white">ex</span></span></span></h1>
             </div>
         </div>
 

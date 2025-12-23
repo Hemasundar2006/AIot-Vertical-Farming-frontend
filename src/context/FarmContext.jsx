@@ -7,22 +7,24 @@ const FarmContext = createContext();
 
 // Configuration
 const SOCKET_URL = 'https://aiot-vertical-farming-backend.onrender.com';
-const API_URL = 'https://aiot-vertical-farming-backend.onrender.com/api';
+const DATA_API_URL = 'https://aiot-vertical-farming-backend.onrender.com/get_temperature';
 
 // Safe thresholds
 const THRESHOLDS = {
-  temperature: 35, // Celsius
+  temperature: 30, // Celsius
   humidity: 80, // Percent
-  moistureLow: 30, // Percent
+  moistureLow: 20, // Percent
+  gasHigh: 2000, 
 };
 
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
-    layer1: { id: 1, name: 'Top Layer (Lettuce)', temperature: 24, humidity: 60, moisture: 45, pumpInfo: { status: false } },
-    layer2: { id: 2, name: 'Middle Layer (Basil)', temperature: 25, humidity: 62, moisture: 50, pumpInfo: { status: false } },
-    layer3: { id: 3, name: 'Bottom Layer (Microgreens)', temperature: 23, humidity: 65, moisture: 55, pumpInfo: { status: false } }
+    layer1: { id: 1, name: 'Zone 1 (Top)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
+    layer2: { id: 2, name: 'Zone 2 (Middle)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
+    layer3: { id: 3, name: 'Zone 3 (Bottom)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } }
   });
+  const [lastUpdated, setLastUpdated] = useState('');
   const [history, setHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -30,8 +32,9 @@ export const FarmProvider = ({ children }) => {
   // Ref to keep track of previous values for alerts to avoid spamming
   const prevLayerState = useRef(layers);
 
+  // Initial Socket Connection (Optional for real-time control if backend supports it)
   useEffect(() => {
-    // Attempt to connect to backend
+    // Keep socket mainly for connectivity check or future use
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket'],
       reconnectionAttempts: 3,
@@ -42,58 +45,94 @@ export const FarmProvider = ({ children }) => {
 
     newSocket.on('connect', () => {
       console.log('Connected to WebSocket');
-      setIsConnected(true);
-      setIsDemoMode(false);
-      toast.success('Connected to Farm System');
+    });
+    
+    newSocket.on('connect_error', (err) => {
+        console.log('Socket connect error', err);
     });
 
-    newSocket.on('connect_error', () => {
-      console.log('Failed to connect to WebSocket, falling back to Demo Mode');
-      setIsConnected(false);
-      setIsDemoMode(true);
-    });
-
-    newSocket.on('farm_data', (data) => {
-      // Expecting data structure matching layers
-      updateLayers(data);
-    });
-
-    // Cleanup
     return () => newSocket.close();
   }, []);
 
-  // Demo Mode Simulation
+  // Polling Data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(DATA_API_URL);
+        const data = response.data;
+        
+        if (data) {
+          setIsConnected(true);
+          setIsDemoMode(false);
+          updateLayersFromApi(data);
+          if (data.last_updated) {
+              setLastUpdated(data.last_updated);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching farm data:", error);
+        if (!isConnected) {
+             setIsDemoMode(true); 
+        }
+      }
+    };
+
+    // Fetch immediately
+    fetchData();
+
+    // Poll every 3 seconds
+    const interval = setInterval(fetchData, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const updateLayersFromApi = (apiData) => {
+    setLayers(prev => {
+        const newLayers = { ...prev };
+        
+        // Helper to safely map data
+        const mapZone = (zoneData, existingLayer) => {
+            if (!zoneData) return existingLayer;
+            return {
+                ...existingLayer,
+                temperature: zoneData.temp !== undefined ? zoneData.temp : existingLayer.temperature,
+                humidity: zoneData.hum !== undefined ? zoneData.hum : existingLayer.humidity,
+                moisture: zoneData.soil !== undefined ? zoneData.soil : existingLayer.moisture, 
+                gas: zoneData.gas !== undefined ? zoneData.gas : existingLayer.gas,
+                light: zoneData.light !== undefined ? zoneData.light : existingLayer.light,
+                pumpInfo: { status: zoneData.relay === "ON" }
+            };
+        };
+
+        newLayers.layer1 = mapZone(apiData.zone1, newLayers.layer1);
+        newLayers.layer2 = mapZone(apiData.zone2, newLayers.layer2);
+        newLayers.layer3 = mapZone(apiData.zone3, newLayers.layer3);
+
+        checkAlerts(newLayers);
+        return newLayers;
+    });
+  };
+
+  // Demo Mode Simulation (Fallback)
   useEffect(() => {
     if (!isDemoMode) return;
 
     const interval = setInterval(() => {
       setLayers(prev => {
         const nextState = { ...prev };
-        const timestamp = new Date().toISOString();
-        const newHistoryPoint = { time: timestamp };
-
+        
         Object.keys(nextState).forEach(key => {
           const layer = nextState[key];
-          // Random fluctuations
+          // Random fluctuations around a "healthy" mean
           const tempChange = (Math.random() - 0.5) * 0.5;
           const humChange = (Math.random() - 0.5) * 1;
-          const moistChange = layer.pumpInfo.status ? 1.5 : -0.2; // Increases if pump is on, decreases otherwise
+          const moistChange = layer.pumpInfo.status ? 1.5 : -0.2;
 
-          layer.temperature = Math.max(0, Math.min(50, parseFloat((layer.temperature + tempChange).toFixed(1))));
-          layer.humidity = Math.max(0, Math.min(100, parseFloat((layer.humidity + humChange).toFixed(1))));
-          layer.moisture = Math.max(0, Math.min(100, parseFloat((layer.moisture + moistChange).toFixed(1))));
-
-          newHistoryPoint[`${key}_moisture`] = layer.moisture;
-        });
-
-        // Check for alerts
-        checkAlerts(nextState);
-        
-        // Update history
-        setHistory(prevHist => {
-          const newHist = [...prevHist, newHistoryPoint];
-          if (newHist.length > 20) newHist.shift(); // Keep last 20 points
-          return newHist;
+          layer.temperature = Math.max(18, Math.min(35, parseFloat((layer.temperature || 24 + tempChange).toFixed(1))));
+          layer.humidity = Math.max(40, Math.min(90, parseFloat((layer.humidity || 60 + humChange).toFixed(1))));
+          layer.moisture = Math.max(0, Math.min(100, parseFloat((layer.moisture || 50 + moistChange).toFixed(1))));
+          layer.gas = 4095; // Default from example
+          layer.light = 0;
         });
 
         return nextState;
@@ -103,24 +142,11 @@ export const FarmProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [isDemoMode]);
 
-  const updateLayers = (newData) => {
-    setLayers(prev => {
-        const updated = { ...prev, ...newData };
-        checkAlerts(updated);
-        return updated;
-    });
-    
-    // Update history logic would go here for real data
-  };
-
   const checkAlerts = (currentLayers) => {
     Object.keys(currentLayers).forEach(key => {
       const layer = currentLayers[key];
       if (layer.temperature > THRESHOLDS.temperature && prevLayerState.current[key].temperature <= THRESHOLDS.temperature) {
-        toast.error(`High Temperature Alert: ${layer.name} is ${layer.temperature}°C!`);
-      }
-      if (layer.humidity > THRESHOLDS.humidity && prevLayerState.current[key].humidity <= THRESHOLDS.humidity) {
-        toast.error(`High Humidity Alert: ${layer.name} is ${layer.humidity}%!`);
+        toast.error(`High Temp in ${layer.name}: ${layer.temperature}°C`);
       }
     });
     prevLayerState.current = currentLayers;
@@ -141,34 +167,12 @@ export const FarmProvider = ({ children }) => {
         pumpInfo: { ...prev[layerKey].pumpInfo, status: newStatus }
       }
     }));
-
-    if (!isDemoMode && socket) {
-      // Send command to backend
-      socket.emit('toggle_pump', { layerId, status: newStatus });
-      try {
-          // Optional: Axios call if REST is preferred for control
-          // await axios.post(`${API_URL}/control`, { layerId, status: newStatus });
-      } catch (error) {
-          console.error("Failed to toggle pump", error);
-          toast.error("Failed to allow pump toggle");
-          // Revert on failure
-             setLayers(prev => ({
-              ...prev,
-              [layerKey]: {
-                ...prev[layerKey],
-                pumpInfo: { ...prev[layerKey].pumpInfo, status: currentStatus }
-              }
-            }));
-      }
-    } else {
-        toast(newStatus ? `Pump for ${layers[layerKey].name} Activated` : `Pump for ${layers[layerKey].name} Deactivated`, {
-            icon: newStatus ? '🌊' : '🛑',
-        });
-    }
+    
+    toast.success(`Pump command sent: ${newStatus ? 'ON' : 'OFF'}`);
   };
 
   return (
-    <FarmContext.Provider value={{ layers, history, togglePump, isConnected, isDemoMode }}>
+    <FarmContext.Provider value={{ layers, history, togglePump, isConnected, isDemoMode, lastUpdated }}>
       {children}
     </FarmContext.Provider>
   );
