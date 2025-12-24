@@ -1,14 +1,74 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Sprout, CornerDownRight } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Sprout, Mic, MicOff, Volume2, Settings, Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateResponse } from '../utils/verticalFarmingKnowledgeBase';
+import { generateGeminiResponse, isGeminiConfigured } from '../services/geminiService';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { initializeSocket, isSocketConnected, disconnectSocket } from '../services/socketService';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your AI Farm Assistant. Ask me anything about your crop health, irrigation schedules, or pest control.", sender: 'bot' }
+    { id: 1, text: "Hello! I'm your Vertical Farming AI Assistant. Ask me anything about vertical farming and I'll give you clear, focused answers. You can type your question or use the microphone button 🎤 to speak. How can I help you today?", sender: 'bot' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [useGemini, setUseGemini] = useState(true);
+  const [useSocket, setUseSocket] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
+  
+  // Speech recognition hook
+  const {
+    isListening,
+    transcript,
+    isSupported: isSpeechSupported,
+    startListening,
+    stopListening,
+    resetTranscript
+  } = useSpeechRecognition();
+
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    if (useSocket) {
+      const socket = initializeSocket();
+      
+      socket.on('connect', () => {
+        setSocketConnected(true);
+        toast.success('Connected to server via Socket.IO', { icon: '🔌' });
+      });
+
+      socket.on('disconnect', () => {
+        setSocketConnected(false);
+        toast.error('Disconnected from server', { icon: '🔌' });
+      });
+
+      socket.on('connect_error', (error) => {
+        setSocketConnected(false);
+        console.error('Socket connection error:', error);
+      });
+
+      // Check initial connection status
+      setSocketConnected(isSocketConnected());
+
+      return () => {
+        if (!useSocket) {
+          disconnectSocket();
+        }
+      };
+    } else {
+      disconnectSocket();
+      setSocketConnected(false);
+    }
+  }, [useSocket]);
+
+  // Update input when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -18,33 +78,99 @@ const ChatBot = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  // Text-to-speech function
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMsg = { id: Date.now(), text: input, sender: 'user' };
     setMessages(prev => [...prev, userMsg]);
+    const userQuestion = input;
     setInput('');
+    resetTranscript();
     setIsTyping(true);
 
-    // Simulate AI thinking and response
-    setTimeout(() => {
-      const responses = [
-          "Based on your sensor data, your basil nitrogen levels are slightly low. I recommend increasing the nutrient solution flow by 5%.",
-          "The current humidity in Zone 2 is ideal for lettuce growth. No adjustments needed.",
-          "I've detected a potential risk of root rot in Tower 4 due to over-saturation. Please check the drainage system.",
-          "Your energy consumption has optimized by 12% this week thanks to the new LED schedule."
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      let response;
       
-      const botMsg = { id: Date.now() + 1, text: randomResponse, sender: 'bot' };
+      if (useGemini && isGeminiConfigured()) {
+        // Use Gemini AI for live responses (with optional Socket.IO)
+        response = await generateGeminiResponse(userQuestion, messages, useSocket && socketConnected);
+        
+        if (response.includes('API Key Error')) {
+          // Fallback to knowledge base if API key issue
+          toast.error('Gemini API not configured. Using built-in knowledge base.');
+          response = generateResponse(userQuestion);
+        }
+      } else {
+        // Use built-in knowledge base
+        response = generateResponse(userQuestion);
+      }
+      
+      const botMsg = { id: Date.now() + 1, text: response, sender: 'bot' };
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
-    }, 1500);
+      
+      // Optional: Speak the response
+      // Uncomment the line below if you want automatic text-to-speech
+      // speakText(response);
+      
+    } catch (error) {
+      console.error('Error getting response:', error);
+      const errorMsg = { 
+        id: Date.now() + 1, 
+        text: "I apologize, but I encountered an error. Please try again.", 
+        sender: 'bot' 
+      };
+      setMessages(prev => [...prev, errorMsg]);
+      setIsTyping(false);
+      toast.error('Failed to get response. Please try again.');
+    }
+  };
+
+  const handleMicClick = () => {
+    if (!isSpeechSupported) {
+      toast.error('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isListening) {
+      stopListening();
+      toast.success('Microphone stopped');
+    } else {
+      startListening();
+      toast.success('Listening... Speak now!', {
+        icon: '🎤',
+        duration: 2000
+      });
+    }
+  };
+
+  const handleSpeakResponse = (text) => {
+    speakText(text);
+    toast.success('Speaking response...', {
+      icon: '🔊',
+      duration: 1000
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#f0f7f4] pt-24 pb-6 px-4 font-sans flex flex-col items-center justify-center relative overflow-hidden">
+        <Toaster position="top-center" />
         
         {/* Background Decor */}
         <div className="absolute top-20 left-10 w-64 h-64 bg-emerald-200/40 rounded-full blur-[80px]" />
@@ -60,14 +186,126 @@ const ChatBot = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                            Farm Assistant AI <Sparkles size={16} className="text-yellow-300" />
+                            Vertical Farming AI <Sparkles size={16} className="text-yellow-300" />
                         </h1>
                         <p className="text-emerald-100/80 text-xs flex items-center gap-1.5">
-                            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" /> Online & Monitoring System
+                            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" /> 
+                            {useGemini && isGeminiConfigured() ? 'Gemini AI Powered' : 'Knowledge Base Mode'}
+                            {useSocket && socketConnected && <span className="ml-2 flex items-center gap-1"><Wifi size={12} /> Socket.IO</span>}
                         </p>
                     </div>
                 </div>
+                
+                {/* Settings Button */}
+                <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    title="Settings"
+                >
+                    <Settings size={20} className="text-white" />
+                </button>
             </div>
+
+            {/* Settings Panel */}
+            <AnimatePresence>
+                {showSettings && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="bg-slate-50 border-b border-slate-200 overflow-hidden"
+                    >
+                        <div className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700">Use Gemini AI</p>
+                                    <p className="text-xs text-slate-500">
+                                        {isGeminiConfigured() 
+                                            ? 'Live AI responses with advanced understanding' 
+                                            : 'Configure API key in src/config/gemini.js'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setUseGemini(!useGemini)}
+                                    disabled={!isGeminiConfigured()}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                        useGemini && isGeminiConfigured() ? 'bg-[#688557]' : 'bg-gray-300'
+                                    } ${!isGeminiConfigured() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            useGemini ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700">Use Socket.IO</p>
+                                    <p className="text-xs text-slate-500">
+                                        {socketConnected 
+                                            ? 'Connected to backend server' 
+                                            : 'Connect to backend for real-time responses'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setUseSocket(!useSocket)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                        useSocket ? 'bg-[#688557]' : 'bg-gray-300'
+                                    } cursor-pointer`}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            useSocket ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700">Voice Input</p>
+                                    <p className="text-xs text-slate-500">
+                                        {isSpeechSupported 
+                                            ? 'Click the microphone to speak your question' 
+                                            : 'Not supported in your browser'}
+                                    </p>
+                                </div>
+                                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    isSpeechSupported 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-red-100 text-red-700'
+                                }`}>
+                                    {isSpeechSupported ? 'Available' : 'Unavailable'}
+                                </div>
+                            </div>
+                            
+                            {useSocket && (
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                                    <div className="flex items-center gap-2">
+                                        {socketConnected ? (
+                                            <Wifi size={16} className="text-green-600" />
+                                        ) : (
+                                            <WifiOff size={16} className="text-red-600" />
+                                        )}
+                                        <span className="text-xs text-slate-600">
+                                            {socketConnected ? 'Server Connected' : 'Connecting...'}
+                                        </span>
+                                    </div>
+                                    <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                        socketConnected 
+                                            ? 'bg-green-100 text-green-700' 
+                                            : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                        {socketConnected ? 'Online' : 'Offline'}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 scroll-smooth">
@@ -87,12 +325,26 @@ const ChatBot = () => {
                             </div>
 
                             {/* Bubble */}
-                            <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${
-                                msg.sender === 'user' 
-                                    ? 'bg-white text-slate-800 rounded-br-none border border-slate-100' 
-                                    : 'bg-[#688557] text-white rounded-bl-none shadow-emerald-900/10'
-                            }`}>
-                                {msg.text}
+                            <div className="flex flex-col gap-2">
+                                <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${
+                                    msg.sender === 'user' 
+                                        ? 'bg-white text-slate-800 rounded-br-none border border-slate-100' 
+                                        : 'bg-[#688557] text-white rounded-bl-none shadow-emerald-900/10'
+                                }`}>
+                                    <div className="whitespace-pre-line">{msg.text}</div>
+                                </div>
+                                
+                                {/* Speak button for bot messages */}
+                                {msg.sender === 'bot' && (
+                                    <button
+                                        onClick={() => handleSpeakResponse(msg.text)}
+                                        className="self-start flex items-center gap-1 px-2 py-1 text-xs text-slate-500 hover:text-[#688557] transition-colors"
+                                        title="Listen to response"
+                                    >
+                                        <Volume2 size={14} />
+                                        <span>Listen</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -126,14 +378,47 @@ const ChatBot = () => {
 
             {/* Input Area */}
             <div className="p-6 bg-white border-t border-slate-100">
-                <form onSubmit={handleSend} className="relative flex items-center gap-4">
+                {/* Listening Indicator */}
+                {isListening && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-3 flex items-center justify-center gap-2 text-sm text-[#688557] font-medium"
+                    >
+                        <div className="flex gap-1">
+                            <span className="w-1 h-4 bg-[#688557] rounded-full animate-pulse" style={{ animationDelay: '0s' }} />
+                            <span className="w-1 h-4 bg-[#688557] rounded-full animate-pulse" style={{ animationDelay: '0.1s' }} />
+                            <span className="w-1 h-4 bg-[#688557] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                        </div>
+                        <span>Listening...</span>
+                    </motion.div>
+                )}
+                
+                <form onSubmit={handleSend} className="relative flex items-center gap-3">
+                    {/* Microphone Button */}
+                    {isSpeechSupported && (
+                        <button
+                            type="button"
+                            onClick={handleMicClick}
+                            className={`p-3 rounded-full transition-all shadow-lg hover:shadow-xl hover:scale-105 ${
+                                isListening 
+                                    ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                                    : 'bg-slate-200 hover:bg-slate-300 text-slate-600'
+                            }`}
+                            title={isListening ? 'Stop listening' : 'Start voice input'}
+                        >
+                            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                        </button>
+                    )}
+                    
                     <input 
                         type="text" 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type your question..."
-                        className="w-full bg-slate-50 text-slate-800 pl-6 pr-14 py-4 rounded-full border border-slate-200 focus:ring-2 focus:ring-[#688557]/20 focus:border-[#688557] outline-none transition-all placeholder-slate-400 font-medium shadow-inner"
+                        placeholder={isListening ? "Listening..." : "Type or speak your question..."}
+                        className="flex-1 bg-slate-50 text-slate-800 pl-6 pr-14 py-4 rounded-full border border-slate-200 focus:ring-2 focus:ring-[#688557]/20 focus:border-[#688557] outline-none transition-all placeholder-slate-400 font-medium shadow-inner"
                     />
+                    
                     <button 
                         type="submit"
                         className="absolute right-2 p-2.5 bg-[#688557] hover:bg-[#5a744b] rounded-full text-white transition-all shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group"
@@ -142,8 +427,11 @@ const ChatBot = () => {
                         <Send size={20} className="ml-0.5 group-hover:-rotate-12 transition-transform" />
                     </button>
                 </form>
+                
                 <p className="text-center text-xs text-slate-400 mt-3">
-                    AI can make mistakes. Verify important farm data.
+                    {useGemini && isGeminiConfigured() 
+                        ? '🤖 Powered by Google Gemini AI with vertical farming knowledge' 
+                        : '📚 Powered by comprehensive vertical farming knowledge base'}
                 </p>
             </div>
         </div>
