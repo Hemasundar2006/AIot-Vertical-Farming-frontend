@@ -33,33 +33,65 @@ const ChatBot = () => {
   useEffect(() => {
     if (useSocket) {
       const socket = initializeSocket();
+      let hasConnected = false;
+      let connectionTimeout;
       
       const handleConnect = () => {
         setSocketConnected(true);
-        toast.success('Connected to server via Socket.IO', { icon: '🔌' });
+        hasConnected = true;
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+        toast.success('Connected to server via Socket.IO', { icon: '🔌', duration: 2000 });
       };
 
-      const handleDisconnect = () => {
+      const handleDisconnect = (reason) => {
         setSocketConnected(false);
-        toast.error('Disconnected from server', { icon: '🔌' });
+        // Only show error if we were previously connected (not initial connection attempts)
+        if (hasConnected && reason !== 'io client disconnect') {
+          toast.error('Disconnected from server', { icon: '🔌', duration: 3000 });
+        }
       };
 
       const handleConnectError = (error) => {
+        // Don't show error for expected WebSocket fallbacks
+        const isWebSocketFallback = error.message && (
+          error.message.includes('websocket') || 
+          error.message.includes('WebSocket')
+        );
+        
+        if (!isWebSocketFallback) {
+          // Only log actual connection errors, not WebSocket fallbacks
+          console.warn('Socket connection issue:', error.message);
+        }
+        
+        // Don't immediately set to false - let it try polling
+        // Only set to false if connection truly fails after timeout
+      };
+
+      const handleReconnectFailed = () => {
         setSocketConnected(false);
-        console.error('Socket connection error:', error);
+        toast.error('Failed to connect to server. Check your connection.', { 
+          icon: '❌', 
+          duration: 4000 
+        });
       };
 
       socket.on('connect', handleConnect);
       socket.on('disconnect', handleDisconnect);
       socket.on('connect_error', handleConnectError);
+      socket.on('reconnect_failed', handleReconnectFailed);
 
-      // Check initial connection status
-      setSocketConnected(isSocketConnected());
+      // Check initial connection status after a short delay
+      // (to allow WebSocket fallback to polling if needed)
+      connectionTimeout = setTimeout(() => {
+        setSocketConnected(isSocketConnected());
+      }, 2000);
 
       return () => {
+        if (connectionTimeout) clearTimeout(connectionTimeout);
         socket.off('connect', handleConnect);
         socket.off('disconnect', handleDisconnect);
         socket.off('connect_error', handleConnectError);
+        socket.off('reconnect_failed', handleReconnectFailed);
       };
     } else {
       disconnectSocket();

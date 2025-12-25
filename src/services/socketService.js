@@ -11,32 +11,73 @@ export const initializeSocket = () => {
     return socket;
   }
 
+  // Check if we should prefer polling (if WebSocket consistently fails)
+  const preferPolling = localStorage.getItem('socket_prefer_polling') === 'true';
+  
   socket = io(SOCKET_URL, {
-    transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+    transports: preferPolling ? ['polling', 'websocket'] : ['websocket', 'polling'],
     reconnection: true,
     reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
     reconnectionAttempts: 5,
-    timeout: 10000,
+    timeout: 20000,
+    forceNew: false,
+    autoConnect: true,
   });
+
+  let websocketFailed = false;
 
   socket.on('connect', () => {
     console.log('✅ Socket.IO connected to backend');
     isConnected = true;
+    websocketFailed = false;
   });
 
   socket.on('connect_error', (error) => {
-    console.log('❌ Socket connection error:', error.message);
-    isConnected = false;
+    // Only log if it's not a WebSocket fallback (which is expected)
+    const isWebSocketError = error.message && (
+      error.message.includes('websocket') || 
+      error.message.includes('WebSocket') ||
+      error.type === 'TransportError'
+    );
+    
+    if (isWebSocketError && !websocketFailed) {
+      // First WebSocket failure - will fallback to polling, this is expected
+      websocketFailed = true;
+      console.log('⚠️ WebSocket unavailable, falling back to polling...');
+      // Remember to prefer polling next time
+      localStorage.setItem('socket_prefer_polling', 'true');
+    } else if (!isWebSocketError) {
+      // Actual connection error, not just WebSocket fallback
+      console.error('❌ Socket connection error:', error.message);
+    }
+    
+    // Don't set isConnected to false on connect_error - let it try polling
+    // Only set to false if all transports fail
   });
 
   socket.on('disconnect', (reason) => {
     console.log('🔌 Socket disconnected:', reason);
     isConnected = false;
+    
+    // If disconnected due to transport error, prefer polling next time
+    if (reason === 'transport close' || reason === 'transport error') {
+      localStorage.setItem('socket_prefer_polling', 'true');
+    }
   });
 
   socket.on('reconnect', (attemptNumber) => {
     console.log('🔄 Socket reconnected after', attemptNumber, 'attempts');
     isConnected = true;
+  });
+
+  socket.on('reconnect_attempt', (attemptNumber) => {
+    console.log(`🔄 Reconnection attempt ${attemptNumber}...`);
+  });
+
+  socket.on('reconnect_failed', () => {
+    console.error('❌ Socket reconnection failed after all attempts');
+    isConnected = false;
   });
 
   return socket;
