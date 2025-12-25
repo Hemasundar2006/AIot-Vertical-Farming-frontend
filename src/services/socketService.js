@@ -71,13 +71,6 @@ export const sendMessageViaSocket = (message, callback) => {
     type: 'vertical_farming_query'
   });
 
-  // Listen for response
-  currentSocket.once('chat_response', (response) => {
-    if (callback) {
-      callback(null, response);
-    }
-  });
-
   // Handle timeout
   const timeout = setTimeout(() => {
     if (callback) {
@@ -85,9 +78,12 @@ export const sendMessageViaSocket = (message, callback) => {
     }
   }, 30000); // 30 second timeout
 
-  // Clear timeout when response received
-  currentSocket.once('chat_response', () => {
+  // Listen for response (single listener that handles both response and timeout clearing)
+  currentSocket.once('chat_response', (response) => {
     clearTimeout(timeout);
+    if (callback) {
+      callback(null, response);
+    }
   });
 };
 
@@ -110,8 +106,16 @@ export const sendGeminiRequestViaSocket = (message, conversationHistory, callbac
     timestamp: new Date().toISOString()
   });
 
-  // Listen for Gemini response
+  // Handle timeout
+  const timeout = setTimeout(() => {
+    if (callback) {
+      callback(new Error('Gemini response timeout'), null);
+    }
+  }, 30000); // 30 second timeout
+
+  // Listen for Gemini response (single listener that handles both response and timeout clearing)
   currentSocket.once('gemini_response', (response) => {
+    clearTimeout(timeout);
     if (response.error) {
       if (callback) {
         callback(new Error(response.error), null);
@@ -121,18 +125,6 @@ export const sendGeminiRequestViaSocket = (message, conversationHistory, callbac
         callback(null, response.text || response.message);
       }
     }
-  });
-
-  // Handle timeout
-  const timeout = setTimeout(() => {
-    if (callback) {
-      callback(new Error('Gemini response timeout'), null);
-    }
-  }, 30000); // 30 second timeout
-
-  // Clear timeout when response received
-  currentSocket.once('gemini_response', () => {
-    clearTimeout(timeout);
   });
 };
 

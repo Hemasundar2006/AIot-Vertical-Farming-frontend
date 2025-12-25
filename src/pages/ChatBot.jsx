@@ -13,7 +13,7 @@ const ChatBot = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [useGemini, setUseGemini] = useState(true);
+  const [useGemini, setUseGemini] = useState(isGeminiConfigured());
   const [useSocket, setUseSocket] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -34,28 +34,32 @@ const ChatBot = () => {
     if (useSocket) {
       const socket = initializeSocket();
       
-      socket.on('connect', () => {
+      const handleConnect = () => {
         setSocketConnected(true);
         toast.success('Connected to server via Socket.IO', { icon: '🔌' });
-      });
+      };
 
-      socket.on('disconnect', () => {
+      const handleDisconnect = () => {
         setSocketConnected(false);
         toast.error('Disconnected from server', { icon: '🔌' });
-      });
+      };
 
-      socket.on('connect_error', (error) => {
+      const handleConnectError = (error) => {
         setSocketConnected(false);
         console.error('Socket connection error:', error);
-      });
+      };
+
+      socket.on('connect', handleConnect);
+      socket.on('disconnect', handleDisconnect);
+      socket.on('connect_error', handleConnectError);
 
       // Check initial connection status
       setSocketConnected(isSocketConnected());
 
       return () => {
-        if (!useSocket) {
-          disconnectSocket();
-        }
+        socket.off('connect', handleConnect);
+        socket.off('disconnect', handleDisconnect);
+        socket.off('connect_error', handleConnectError);
       };
     } else {
       disconnectSocket();
