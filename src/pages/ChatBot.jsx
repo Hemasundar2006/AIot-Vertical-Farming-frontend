@@ -15,6 +15,7 @@ const ChatBot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [useGemini, setUseGemini] = useState(isGeminiConfigured());
   const [useSocket, setUseSocket] = useState(false);
+  const [useHttpApi, setUseHttpApi] = useState(true); // Default to HTTP API
   const [socketConnected, setSocketConnected] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
@@ -144,8 +145,8 @@ const ChatBot = () => {
       let response;
       
       if (useGemini && isGeminiConfigured()) {
-        // Use Gemini AI for live responses (with optional Socket.IO)
-        response = await generateGeminiResponse(userQuestion, messages, useSocket && socketConnected);
+        // Use Gemini AI for live responses (with optional HTTP API or Socket.IO)
+        response = await generateGeminiResponse(userQuestion, messages, useSocket && socketConnected, useHttpApi);
         
         if (response.includes('API Key Error')) {
           // Fallback to knowledge base if API key issue
@@ -227,6 +228,7 @@ const ChatBot = () => {
                         <p className="text-emerald-100/80 text-xs flex items-center gap-1.5">
                             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" /> 
                             {useGemini && isGeminiConfigured() ? 'Gemini AI Powered' : 'Knowledge Base Mode'}
+                            {useHttpApi && <span className="ml-2 flex items-center gap-1">🌐 HTTP API</span>}
                             {useSocket && socketConnected && <span className="ml-2 flex items-center gap-1"><Wifi size={12} /> Socket.IO</span>}
                         </p>
                     </div>
@@ -271,6 +273,29 @@ const ChatBot = () => {
                                     <span
                                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                                             useGemini ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700">Use HTTP API</p>
+                                    <p className="text-xs text-slate-500">
+                                        {useHttpApi 
+                                            ? 'Using REST API endpoint (/api/chatbot)' 
+                                            : 'Use HTTP API for backend communication'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setUseHttpApi(!useHttpApi)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                        useHttpApi ? 'bg-[#688557]' : 'bg-gray-300'
+                                    } cursor-pointer`}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            useHttpApi ? 'translate-x-6' : 'translate-x-1'
                                         }`}
                                     />
                                 </button>

@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GEMINI_API_KEY } from '../config/gemini';
 import { knowledgeBase } from '../utils/verticalFarmingKnowledgeBase';
 import { sendGeminiRequestViaSocket, isSocketConnected } from './socketService';
+import { sendChatMessage, isBackendApiAvailable } from './chatbotApiService';
 
 // Initialize Gemini AI
 let genAI;
@@ -39,9 +40,26 @@ const createContext = () => {
 
 const systemContext = createContext();
 
-// Generate response using Gemini AI (with Socket.IO support)
-export async function generateGeminiResponse(userMessage, conversationHistory = [], useSocket = false) {
-  // Try Socket.IO first if requested and connected
+// Generate response using Gemini AI (with multiple transport options)
+export async function generateGeminiResponse(userMessage, conversationHistory = [], useSocket = false, useHttpApi = false) {
+  // Try HTTP API first if requested and available
+  if (useHttpApi) {
+    try {
+      const isAvailable = await isBackendApiAvailable();
+      if (isAvailable) {
+        console.log('✅ Using HTTP API for chat');
+        const response = await sendChatMessage(userMessage, conversationHistory);
+        return response;
+      } else {
+        console.warn('HTTP API not available, trying other methods...');
+      }
+    } catch (httpError) {
+      console.warn('HTTP API request failed, trying other methods:', httpError.message);
+      // Fall through to other methods
+    }
+  }
+
+  // Try Socket.IO if requested and connected
   if (useSocket && isSocketConnected()) {
     try {
       return await new Promise((resolve, reject) => {
