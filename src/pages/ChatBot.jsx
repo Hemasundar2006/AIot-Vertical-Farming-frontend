@@ -228,7 +228,6 @@ const ChatBot = () => {
                         <p className="text-emerald-100/80 text-xs flex items-center gap-1.5">
                             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" /> 
                             {useGemini && isGeminiConfigured() ? 'Gemini AI Powered' : 'Knowledge Base Mode'}
-                            {useHttpApi && <span className="ml-2 flex items-center gap-1">🌐 HTTP API</span>}
                             {useSocket && socketConnected && <span className="ml-2 flex items-center gap-1"><Wifi size={12} /> Socket.IO</span>}
                         </p>
                     </div>
