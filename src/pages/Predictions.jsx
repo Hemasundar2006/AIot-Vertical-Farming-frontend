@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, ChevronRight, TrendingUp } from 'lucide-react';
+import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, ChevronRight, TrendingUp, Calendar, Sun, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import { Client } from "@gradio/client";
+import toast from 'react-hot-toast';
 
 const PredictionCard = ({ title, value, subtext, icon: Icon, color, trend }) => (
   <motion.div 
@@ -36,11 +38,90 @@ const PredictionCard = ({ title, value, subtext, icon: Icon, color, trend }) => 
 const MLPredictions = () => {
     const [analyzing, setAnalyzing] = useState(false);
     const [activeTab, setActiveTab] = useState('yield');
+    
+    // Crop prediction states
+    const [year, setYear] = useState(2025);
+    const [season, setSeason] = useState("Kharif");
+    const [month, setMonth] = useState("January");
+    const [soilType, setSoilType] = useState("Clay");
+    const [predictedCrop, setPredictedCrop] = useState(null);
+    const [isPredicting, setIsPredicting] = useState(false);
+    const [client, setClient] = useState(null);
+
+    // Initialize Gradio client
+    React.useEffect(() => {
+        const initClient = async () => {
+            try {
+                console.log("Connecting to Gradio client: sumiyon/Agrinex");
+                const gradioClient = await Client.connect("sumiyon/Agrinex");
+                setClient(gradioClient);
+                console.log("✅ Gradio client connected successfully");
+            } catch (error) {
+                console.error("Failed to connect to Gradio client:", error);
+                toast.error("Failed to connect to prediction service");
+            }
+        };
+        initClient();
+    }, []);
+
+    const handleCropPrediction = async () => {
+        if (!client) {
+            toast.error("Prediction service not ready. Please wait...");
+            return;
+        }
+
+        setIsPredicting(true);
+        setPredictedCrop(null);
+        
+        try {
+            console.log("Calling API with parameters:", { year, season, month, soil_type: soilType });
+            
+            // Use Gradio client to predict
+            const result = await client.predict("/predict_crop", {
+                year: year,
+                season: season,
+                month: month,
+                soil_type: soilType,
+            });
+            
+            console.log("API Response:", result);
+            console.log("Result data:", result.data);
+            
+            // Extract crop from result.data
+            let crop = null;
+            if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+                crop = result.data[0];
+            } else if (typeof result.data === 'string') {
+                crop = result.data;
+            } else if (result.data) {
+                crop = result.data;
+            }
+
+            if (!crop) {
+                throw new Error("Could not extract crop prediction from API response. Response: " + JSON.stringify(result));
+            }
+
+            console.log("Predicted Crop:", crop);
+            setPredictedCrop(crop);
+            toast.success("Crop prediction successful!");
+        } catch (error) {
+            console.error("Prediction error:", error);
+            const errorMessage = error?.message || error?.toString() || "Unknown error occurred";
+            toast.error(`Failed to predict crop: ${errorMessage}`);
+        } finally {
+            setIsPredicting(false);
+        }
+    };
 
     const runAnalysis = () => {
         setAnalyzing(true);
         setTimeout(() => setAnalyzing(false), 2500);
     };
+
+    // Options for dropdowns
+    const seasons = ["Kharif", "Rabi", "Zaid"];
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const soilTypes = ["Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky"];
 
     const yieldData = [
         { name: 'Week 1', val: 4000 },
@@ -72,6 +153,131 @@ const MLPredictions = () => {
                         Real-time machine learning insights to optimize your vertical farm's yield, resource usage, and harvest timing.
                     </p>
                 </div>
+
+                {/* Crop Prediction Form Section */}
+                <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 mb-10"
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 rounded-xl bg-[#688557]/10 flex items-center justify-center">
+                            <Sprout className="text-[#688557]" size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-slate-800">Crop Prediction</h2>
+                            <p className="text-slate-500 text-sm">Get AI-powered crop recommendations based on your conditions</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        {/* Year Input */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Calendar size={14} className="text-[#688557]" />
+                                Year
+                            </label>
+                            <input
+                                type="number"
+                                value={year}
+                                onChange={(e) => setYear(Number(e.target.value))}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#688557] focus:outline-none transition-colors text-slate-800 font-medium"
+                                min="2020"
+                                max="2030"
+                            />
+                        </div>
+
+                        {/* Season Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Sun size={14} className="text-[#688557]" />
+                                Season
+                            </label>
+                            <select
+                                value={season}
+                                onChange={(e) => setSeason(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#688557] focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                {seasons.map((s) => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Month Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Calendar size={14} className="text-[#688557]" />
+                                Month
+                            </label>
+                            <select
+                                value={month}
+                                onChange={(e) => setMonth(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#688557] focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                {months.map((m) => (
+                                    <option key={m} value={m}>{m}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Soil Type Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Layers size={14} className="text-[#688557]" />
+                                Soil Type
+                            </label>
+                            <select
+                                value={soilType}
+                                onChange={(e) => setSoilType(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#688557] focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                {soilTypes.map((st) => (
+                                    <option key={st} value={st}>{st}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Predict Button */}
+                    <button
+                        onClick={handleCropPrediction}
+                        disabled={isPredicting || !client}
+                        className="w-full py-4 bg-[#688557] hover:bg-[#5a744b] disabled:bg-slate-400 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                    >
+                        {isPredicting ? (
+                            <>
+                                <Activity size={20} className="animate-spin" />
+                                Predicting...
+                            </>
+                        ) : (
+                            <>
+                                <Brain size={20} />
+                                Predict Crop
+                            </>
+                        )}
+                    </button>
+
+                    {/* Predicted Crop Result */}
+                    {predictedCrop && (
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="mt-6 p-8 bg-gradient-to-r from-[#688557]/10 to-emerald-50 rounded-xl border-2 border-[#688557]/30 shadow-lg"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-[#688557] flex items-center justify-center">
+                                    <Target className="text-white" size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">Predicted Crop</h3>
+                            </div>
+                            <div className="bg-white rounded-lg p-4 mb-3">
+                                <p className="text-4xl font-extrabold text-[#688557] text-center">{predictedCrop}</p>
+                            </div>
+                            <p className="text-sm text-slate-500 text-center">Based on your selected parameters: {year}, {season}, {month}, {soilType}</p>
+                        </motion.div>
+                    )}
+                </motion.div>
 
                 {/* Top Prediction Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
