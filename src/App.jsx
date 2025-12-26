@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast';
 
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import SensorData from './pages/SensorData';
 
 // ... (other imports remain, but reusing existing block structure to minimize diff)
 
@@ -69,6 +70,7 @@ function App() {
                 <Route path="/dashboard" element={<PrivateRoute><MainLayout><Dashboard /></MainLayout></PrivateRoute>} />
                 
                 <Route path="/predictions" element={<PrivateRoute><MainLayout><MLPredictions /></MainLayout></PrivateRoute>} />
+                <Route path="/sensor-data" element={<PrivateRoute><MainLayout><SensorData /></MainLayout></PrivateRoute>} />
                 <Route path="/chatbot" element={<MainLayout><ChatBot /></MainLayout>} />
                 <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
             </Routes>

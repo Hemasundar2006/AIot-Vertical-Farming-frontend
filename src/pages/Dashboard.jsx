@@ -1,15 +1,58 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
-import { Thermometer, Droplets, Wind, CloudFog, Zap, Activity, ChevronRight, Sun, Gauge, Clock } from 'lucide-react';
+import { Thermometer, Droplets, Wind, CloudFog, Zap, Activity, ChevronRight, Sun, Gauge, Clock, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import SensorGraphs from '../components/SensorGraphs';
 
 const Dashboard = () => {
     const { user } = useAuth();
     const { layers, isConnected, togglePump, lastUpdated, isDemoMode } = useFarm();
     const navigate = useNavigate();
+    const [selectedZoneForGraph, setSelectedZoneForGraph] = useState(null);
+    const sensorGraphsRef = useRef(null);
+
+    // Scroll to sensor graphs when a zone is selected
+    useEffect(() => {
+        if (selectedZoneForGraph && sensorGraphsRef.current) {
+            sensorGraphsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [selectedZoneForGraph]);
+
+    // Helper function to convert zone id/name to zone1, zone2, zone3 format
+    const getZoneKey = (zone) => {
+        // Convert zone.id to string if it's a number
+        const zoneIdStr = zone.id != null ? String(zone.id) : '';
+        const zoneNameStr = zone.name ? String(zone.name) : '';
+        const zoneId = (zoneIdStr || zoneNameStr).toLowerCase();
+        
+        // If zone.id is a number (1, 2, 3), use it directly
+        if (typeof zone.id === 'number' && zone.id >= 1 && zone.id <= 3) {
+            return `zone${zone.id}`;
+        }
+        
+        // Check for zone patterns in string
+        if (zoneId.includes('1') || zoneId.includes('zone1') || zoneId.includes('one')) {
+            return 'zone1';
+        } else if (zoneId.includes('2') || zoneId.includes('zone2') || zoneId.includes('two')) {
+            return 'zone2';
+        } else if (zoneId.includes('3') || zoneId.includes('zone3') || zoneId.includes('three')) {
+            return 'zone3';
+        }
+        
+        // Default fallback - try to extract number from string
+        const match = zoneId.match(/\d+/);
+        if (match) {
+            const num = parseInt(match[0], 10);
+            if (num >= 1 && num <= 3) {
+                return `zone${num}`;
+            }
+        }
+        
+        return 'zone1'; // Default
+    };
 
     // Calculate Overall Stats from "layers" (Zones)
     const overallStats = useMemo(() => {
@@ -30,12 +73,22 @@ const Dashboard = () => {
     // Zone/Layer Card Component
     const ZoneCard = ({ zone }) => {
         const isPumpOn = zone.pumpInfo.status;
+        const zoneKey = getZoneKey(zone);
+        
+        const handleZoneClick = (e) => {
+            // Don't trigger if clicking on the pump button or its container
+            if (e.target.closest('button') || e.target.closest('[role="button"]')) {
+                return;
+            }
+            setSelectedZoneForGraph(zoneKey);
+        };
         
         return (
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
+                onClick={handleZoneClick}
+                className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
             >
                 {/* Header Gradient */}
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-10" />
@@ -47,13 +100,19 @@ const Dashboard = () => {
                     {/* Header */}
                     <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 shadow-inner">
+                            <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 shadow-inner group-hover:bg-emerald-200 transition-colors">
                                 <Activity size={24} />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-slate-800">{zone.name}</h3>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-xl font-bold text-slate-800">{zone.name}</h3>
+                                    <BarChart3 size={16} className="text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
                                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
                                     ID: {zone.id} • {isConnected ? 'Live' : 'Connecting...'}
+                                </p>
+                                <p className="text-xs text-emerald-600 font-medium mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Click to view graphs →
                                 </p>
                             </div>
                         </div>
@@ -90,7 +149,10 @@ const Dashboard = () => {
                             Status: <span className="text-slate-600 font-semibold">{isPumpOn ? 'Watering...' : 'Monitoring'}</span>
                         </div>
                         <button
-                            onClick={() => togglePump(zone.id)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                togglePump(zone.id);
+                            }}
                             className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2 ${
                                 isPumpOn 
                                     ? 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200' 
@@ -249,6 +311,20 @@ const Dashboard = () => {
                         </div>
 
                     </div>
+                </div>
+
+                {/* Sensor Data Graphs Section */}
+                <div ref={sensorGraphsRef} className="mt-12 lg:mt-16">
+                    <div className="flex items-center gap-2 text-sm text-emerald-600 mb-4 font-medium bg-emerald-50 w-fit px-3 py-1 rounded-full border border-emerald-100">
+                        <Activity size={14} /> <span>Historical Data</span>
+                    </div>
+                    <h2 className="text-2xl lg:text-3xl font-black text-slate-800 tracking-tight mb-6">
+                        Sensor <span className="text-emerald-600">Data Analytics</span>
+                    </h2>
+                    <p className="text-slate-500 mb-8 text-base lg:text-lg">
+                        View detailed daily and monthly sensor readings from your vertical farming system
+                    </p>
+                    <SensorGraphs initialZone={selectedZoneForGraph} />
                 </div>
              </div>
         </main>
