@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, ChevronRight, TrendingUp, Calendar, Sun, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
-import { Client } from "@gradio/client";
 import toast from 'react-hot-toast';
+
+const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
 
 const PredictionCard = ({ title, value, subtext, icon: Icon, color, trend }) => (
   <motion.div 
@@ -46,59 +47,91 @@ const MLPredictions = () => {
     const [soilType, setSoilType] = useState("Clay");
     const [predictedCrop, setPredictedCrop] = useState(null);
     const [isPredicting, setIsPredicting] = useState(false);
-    const [client, setClient] = useState(null);
+    
+    // Options from backend
+    const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Zaid"]);
+    const [months, setMonths] = useState(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]);
+    const [soilTypes, setSoilTypes] = useState(["Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky"]);
+    const [yearRange, setYearRange] = useState({ min: 2020, max: 2030 });
+    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
-    // Initialize Gradio client
-    React.useEffect(() => {
-        const initClient = async () => {
+    // Fetch options from backend
+    useEffect(() => {
+        const fetchOptions = async () => {
+            setIsLoadingOptions(true);
             try {
-                console.log("Connecting to Gradio client: sumiyon/Agrinex");
-                const gradioClient = await Client.connect("sumiyon/Agrinex");
-                setClient(gradioClient);
-                console.log("✅ Gradio client connected successfully");
+                const response = await fetch(`${API_BASE_URL}/api/crop/options`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch options');
+                }
+                const data = await response.json();
+                
+                if (data.seasons) setSeasons(data.seasons);
+                if (data.months) setMonths(data.months);
+                if (data.soil_types) setSoilTypes(data.soil_types);
+                if (data.year_range) {
+                    setYearRange(data.year_range);
+                    // Set default year if available
+                    if (data.year_range.min) {
+                        setYear(data.year_range.min);
+                    }
+                }
+                
+                // Set default values from options if available
+                if (data.seasons && data.seasons.length > 0) {
+                    setSeason(data.seasons[0]);
+                }
+                if (data.months && data.months.length > 0) {
+                    setMonth(data.months[0]);
+                }
+                if (data.soil_types && data.soil_types.length > 0) {
+                    setSoilType(data.soil_types[0]);
+                }
             } catch (error) {
-                console.error("Failed to connect to Gradio client:", error);
-                toast.error("Failed to connect to prediction service");
+                console.error('Error fetching options:', error);
+                // Keep default values if fetch fails
+                toast.error('Failed to load options. Using default values.');
+            } finally {
+                setIsLoadingOptions(false);
             }
         };
-        initClient();
+        
+        fetchOptions();
     }, []);
 
     const handleCropPrediction = async () => {
-        if (!client) {
-            toast.error("Prediction service not ready. Please wait...");
-            return;
-        }
-
         setIsPredicting(true);
         setPredictedCrop(null);
         
         try {
             console.log("Calling API with parameters:", { year, season, month, soil_type: soilType });
             
-            // Use Gradio client to predict
-            const result = await client.predict("/predict_crop", {
-                year: year,
-                season: season,
-                month: month,
-                soil_type: soilType,
+            const response = await fetch(`${API_BASE_URL}/api/crop/predict`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    year: year,
+                    season: season,
+                    month: month,
+                    soil_type: soilType,
+                }),
             });
-            
-            console.log("API Response:", result);
-            console.log("Result data:", result.data);
-            
-            // Extract crop from result.data
-            let crop = null;
-            if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-                crop = result.data[0];
-            } else if (typeof result.data === 'string') {
-                crop = result.data;
-            } else if (result.data) {
-                crop = result.data;
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
 
+            const data = await response.json();
+            console.log("API Response:", data);
+            
+            // Extract crop from response
+            const crop = data.prediction;
+            
             if (!crop) {
-                throw new Error("Could not extract crop prediction from API response. Response: " + JSON.stringify(result));
+                throw new Error("No prediction found in API response. Response: " + JSON.stringify(data));
             }
 
             console.log("Predicted Crop:", crop);
@@ -117,11 +150,6 @@ const MLPredictions = () => {
         setAnalyzing(true);
         setTimeout(() => setAnalyzing(false), 2500);
     };
-
-    // Options for dropdowns
-    const seasons = ["Kharif", "Rabi", "Zaid"];
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const soilTypes = ["Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky"];
 
     const yieldData = [
         { name: 'Week 1', val: 4000 },
@@ -182,8 +210,9 @@ const MLPredictions = () => {
                                 value={year}
                                 onChange={(e) => setYear(Number(e.target.value))}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#688557] focus:outline-none transition-colors text-slate-800 font-medium"
-                                min="2020"
-                                max="2030"
+                                min={yearRange.min}
+                                max={yearRange.max}
+                                disabled={isLoadingOptions}
                             />
                         </div>
 
@@ -242,7 +271,7 @@ const MLPredictions = () => {
                     {/* Predict Button */}
                     <button
                         onClick={handleCropPrediction}
-                        disabled={isPredicting || !client}
+                        disabled={isPredicting || isLoadingOptions}
                         className="w-full py-4 bg-[#688557] hover:bg-[#5a744b] disabled:bg-slate-400 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                     >
                         {isPredicting ? (
