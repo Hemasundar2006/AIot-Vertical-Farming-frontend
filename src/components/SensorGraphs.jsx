@@ -30,6 +30,16 @@ ChartJS.register(
   TimeScale
 );
 
+// Helper function to get soil name from zone key
+const getSoilName = (zoneKey) => {
+  const soilNames = {
+    'zone1': 'Black Soil',
+    'zone2': 'Red Soil',
+    'zone3': 'Sand'
+  };
+  return soilNames[zoneKey] || zoneKey;
+};
+
 const SensorGraphs = ({ initialZone = null }) => {
   const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'monthly'
   const [selectedZone, setSelectedZone] = useState(initialZone || 'zone1');
@@ -229,7 +239,7 @@ const SensorGraphs = ({ initialZone = null }) => {
       },
       title: {
         display: true,
-        text: `Daily Sensor Data - ${selectedZone.toUpperCase()} - ${selectedDate}`,
+        text: `Daily Sensor Data - ${getSoilName(selectedZone)} - ${selectedDate}`,
         font: {
           size: 16,
           weight: 'bold',
@@ -330,7 +340,7 @@ const SensorGraphs = ({ initialZone = null }) => {
       },
       title: {
         display: true,
-        text: `Monthly Sensor Data - ${selectedZone.toUpperCase()} - ${selectedYear}/${String(selectedMonth).padStart(2, '0')}`,
+        text: `Monthly Sensor Data - ${getSoilName(selectedZone)} - ${selectedYear}/${String(selectedMonth).padStart(2, '0')}`,
         font: {
           size: 16,
           weight: 'bold',
@@ -397,15 +407,15 @@ const SensorGraphs = ({ initialZone = null }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm font-semibold text-slate-700">Zone:</label>
+            <label className="text-sm font-semibold text-slate-700">Soil Type:</label>
             <select
               value={selectedZone}
               onChange={(e) => setSelectedZone(e.target.value)}
               className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             >
-              <option value="zone1">Zone 1</option>
-              <option value="zone2">Zone 2</option>
-              <option value="zone3">Zone 3</option>
+              <option value="zone1">Black Soil</option>
+              <option value="zone2">Red Soil</option>
+              <option value="zone3">Sand</option>
             </select>
           </div>
 

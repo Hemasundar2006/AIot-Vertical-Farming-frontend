@@ -20,9 +20,9 @@ const THRESHOLDS = {
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
-    layer1: { id: 1, name: 'Zone 1 (Top)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
-    layer2: { id: 2, name: 'Zone 2 (Middle)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
-    layer3: { id: 3, name: 'Zone 3 (Bottom)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } }
+    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
+    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
+    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } }
   });
   const [lastUpdated, setLastUpdated] = useState('');
   const [history, setHistory] = useState([]);
