@@ -65,8 +65,10 @@ export const FarmProvider = ({ children }) => {
           setIsConnected(true);
           setIsDemoMode(false);
           updateLayersFromApi(data);
-          if (data.last_updated) {
-              setLastUpdated(data.last_updated);
+          if (data.timestamp) {
+              // Convert ISO timestamp to readable format
+              const timestamp = new Date(data.timestamp);
+              setLastUpdated(timestamp.toLocaleString());
           }
         }
       } catch (error) {
@@ -93,14 +95,16 @@ export const FarmProvider = ({ children }) => {
         // Helper to safely map data
         const mapZone = (zoneData, existingLayer) => {
             if (!zoneData) return existingLayer;
+            // Remove _id if present (new API doesn't include it)
+            const { _id, ...cleanZoneData } = zoneData;
             return {
                 ...existingLayer,
-                temperature: zoneData.temp !== undefined ? zoneData.temp : existingLayer.temperature,
-                humidity: zoneData.hum !== undefined ? zoneData.hum : existingLayer.humidity,
-                moisture: zoneData.soil !== undefined ? zoneData.soil : existingLayer.moisture, 
-                gas: zoneData.gas !== undefined ? zoneData.gas : existingLayer.gas,
-                light: zoneData.light !== undefined ? zoneData.light : existingLayer.light,
-                pumpInfo: { status: zoneData.relay === "ON" }
+                temperature: cleanZoneData.temp !== undefined ? cleanZoneData.temp : existingLayer.temperature,
+                humidity: cleanZoneData.hum !== undefined ? cleanZoneData.hum : existingLayer.humidity,
+                moisture: cleanZoneData.soil !== undefined ? cleanZoneData.soil : existingLayer.moisture, 
+                gas: cleanZoneData.gas !== undefined ? cleanZoneData.gas : existingLayer.gas,
+                light: cleanZoneData.light !== undefined ? cleanZoneData.light : existingLayer.light,
+                pumpInfo: { status: cleanZoneData.motor === "ON" }
             };
         };
 
