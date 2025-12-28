@@ -92,25 +92,49 @@ export const FarmProvider = ({ children }) => {
     setLayers(prev => {
         const newLayers = { ...prev };
         
-        // Helper to safely map data
-        const mapZone = (zoneData, existingLayer) => {
-            if (!zoneData) return existingLayer;
-            // Remove _id if present (new API doesn't include it)
-            const { _id, ...cleanZoneData } = zoneData;
-            return {
-                ...existingLayer,
-                temperature: cleanZoneData.temp !== undefined ? cleanZoneData.temp : existingLayer.temperature,
-                humidity: cleanZoneData.hum !== undefined ? cleanZoneData.hum : existingLayer.humidity,
-                moisture: cleanZoneData.soil !== undefined ? cleanZoneData.soil : existingLayer.moisture, 
-                gas: cleanZoneData.gas !== undefined ? cleanZoneData.gas : existingLayer.gas,
-                light: cleanZoneData.light !== undefined ? cleanZoneData.light : existingLayer.light,
-                pumpInfo: { status: cleanZoneData.motor === "ON" }
+        // New API structure: { zones: [{ id, soil, temperature, humidity, gas, light }, ...], timestamp }
+        if (apiData.zones && Array.isArray(apiData.zones)) {
+            // Process zones array
+            apiData.zones.forEach(zone => {
+                const zoneId = zone.id;
+                let layerKey = null;
+                
+                // Map zone id to layer key
+                if (zoneId === 1) layerKey = 'layer1';
+                else if (zoneId === 2) layerKey = 'layer2';
+                else if (zoneId === 3) layerKey = 'layer3';
+                
+                if (layerKey && newLayers[layerKey]) {
+                    newLayers[layerKey] = {
+                        ...newLayers[layerKey],
+                        temperature: zone.temperature !== undefined ? zone.temperature : newLayers[layerKey].temperature,
+                        humidity: zone.humidity !== undefined ? zone.humidity : newLayers[layerKey].humidity,
+                        moisture: zone.soil !== undefined ? zone.soil : newLayers[layerKey].moisture,
+                        gas: zone.gas !== undefined ? zone.gas : newLayers[layerKey].gas,
+                        light: zone.light !== undefined ? zone.light : newLayers[layerKey].light,
+                        // Note: motor/pump status is not included in GET response
+                        // pumpInfo status remains unchanged (controlled separately)
+                    };
+                }
+            });
+        } else {
+            // Fallback: Handle old structure (zone1, zone2, zone3) for backward compatibility
+            const mapZone = (zoneData, existingLayer) => {
+                if (!zoneData) return existingLayer;
+                return {
+                    ...existingLayer,
+                    temperature: zoneData.temp !== undefined ? zoneData.temp : (zoneData.temperature !== undefined ? zoneData.temperature : existingLayer.temperature),
+                    humidity: zoneData.hum !== undefined ? zoneData.hum : (zoneData.humidity !== undefined ? zoneData.humidity : existingLayer.humidity),
+                    moisture: zoneData.soil !== undefined ? zoneData.soil : existingLayer.moisture,
+                    gas: zoneData.gas !== undefined ? zoneData.gas : existingLayer.gas,
+                    light: zoneData.light !== undefined ? zoneData.light : existingLayer.light,
+                };
             };
-        };
 
-        newLayers.layer1 = mapZone(apiData.zone1, newLayers.layer1);
-        newLayers.layer2 = mapZone(apiData.zone2, newLayers.layer2);
-        newLayers.layer3 = mapZone(apiData.zone3, newLayers.layer3);
+            newLayers.layer1 = mapZone(apiData.zone1, newLayers.layer1);
+            newLayers.layer2 = mapZone(apiData.zone2, newLayers.layer2);
+            newLayers.layer3 = mapZone(apiData.zone3, newLayers.layer3);
+        }
 
         checkAlerts(newLayers);
         return newLayers;
