@@ -3,7 +3,6 @@ import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, Chevr
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import toast from 'react-hot-toast';
-import { Client } from '@gradio/client';
 
 const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
 
@@ -54,10 +53,12 @@ const MLPredictions = () => {
     const [waterSoil, setWaterSoil] = useState("Clay");
     const [waterMonth, setWaterMonth] = useState("January");
     const [waterSeason, setWaterSeason] = useState("Summer");
-    const [waterYear, setWaterYear] = useState(2025);
+    // Year dropdown (Gradio expects a dropdown value, currently only 2025)
+    const [waterYear, setWaterYear] = useState("2025");
     const [waterTemperature, setWaterTemperature] = useState(25);
     const [waterPrediction, setWaterPrediction] = useState(null);
     const [isPredictingWater, setIsPredictingWater] = useState(false);
+    const [waterPredictionStatus, setWaterPredictionStatus] = useState('');
     
     // Options from backend
     const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Zaid"]);
@@ -162,19 +163,16 @@ const MLPredictions = () => {
         setTimeout(() => setAnalyzing(false), 2500);
     };
 
-    // Water prediction handler using Gradio client
+    // Water prediction handler using backend API
     const handleWaterPrediction = async () => {
         setIsPredictingWater(true);
         setWaterPrediction(null);
+        setWaterPredictionStatus('Initializing...');
         
         try {
-            // Validate inputs
-            if (!waterCrop || !waterSoil || !waterMonth || !waterSeason || !waterYear || !waterTemperature) {
+            // Validate inputs (year is fixed to 2025)
+            if (!waterCrop || !waterSoil || !waterMonth || !waterSeason || !waterTemperature) {
                 throw new Error("Please fill in all fields");
-            }
-            
-            if (waterYear < 2000 || waterYear > 2100) {
-                throw new Error("Year must be between 2000 and 2100");
             }
             
             const validTemperatures = [18, 20, 22, 25, 28, 30, 32, 35];
@@ -182,50 +180,68 @@ const MLPredictions = () => {
                 throw new Error("Temperature must be one of: 18, 20, 22, 25, 28, 30, 32, 35");
             }
             
-            console.log("Connecting to Gradio client: sumiyon/water_only");
-            
-            // Connect to Gradio client
-            const client = await Client.connect("sumiyon/water_only");
-            
-            console.log("Calling predict_water with parameters:", {
+            const predictionParams = {
                 crop: waterCrop,
                 soil: waterSoil,
                 month: waterMonth,
                 season: waterSeason,
-                year: String(waterYear),
+                year: waterYear, // send as string to match dropdown choices
+                temperature: String(waterTemperature),
+            };
+            
+            console.log("Sending water prediction request:", predictionParams);
+            setWaterPredictionStatus('Sending prediction request...');
+            
+            // Build query parameters - year comes from dropdown (currently only "2025")
+            const params = new URLSearchParams({
+                crop: waterCrop,
+                soil: waterSoil,
+                month: waterMonth,
+                season: waterSeason,
+                year: waterYear,
                 temperature: String(waterTemperature),
             });
             
-            // Call the Gradio API
-            const result = await client.predict("/predict_water", {
-                crop: waterCrop,
-                soil: waterSoil,
-                month: waterMonth,
-                season: waterSeason,
-                year: String(waterYear),
-                temperature: String(waterTemperature),
+            const apiUrl = `${API_BASE_URL}/api/crop/predict-water?${params}`;
+            console.log("API URL:", apiUrl);
+            
+            setWaterPredictionStatus('Waiting for AI model response...');
+            
+            // Make GET request with timeout
+            const timeoutMs = 60000; // 60 seconds timeout
+            const fetchPromise = fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
 
-            console.log("Water Prediction Response:", result.data);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Prediction timeout: Model took too long to respond. Please try again.')), timeoutMs)
+            );
+
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Server error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("Water Prediction Response:", data);
             
-            // Gradio returns data as an array, first element is the prediction string
-            const predictionText = result.data && result.data[0] ? result.data[0] : null;
+            setWaterPredictionStatus('Processing results...');
             
-            if (predictionText) {
+            // Check if prediction exists in response
+            if (data.prediction) {
                 setWaterPrediction({
-                    prediction: predictionText,
-                    input: {
-                        crop: waterCrop,
-                        soil: waterSoil,
-                        month: waterMonth,
-                        season: waterSeason,
-                        year: String(waterYear),
-                        temperature: String(waterTemperature),
-                    }
+                    prediction: data.prediction,
+                    input: data.input || predictionParams
                 });
-                toast.success("Water prediction generated successfully!");
+                setWaterPredictionStatus('');
+                toast.success(data.message || "Water prediction generated successfully!");
             } else {
-                throw new Error("No prediction returned from API. Response: " + JSON.stringify(result));
+                throw new Error(data.message || "No prediction returned from API. Response: " + JSON.stringify(data));
             }
         } catch (error) {
             console.error("Water prediction error:", error);
@@ -240,12 +256,13 @@ const MLPredictions = () => {
             }
             
             // Provide more helpful error messages
-            if (errorMessage.includes('connect') || errorMessage.includes('network')) {
+            if (errorMessage.includes('timeout') || errorMessage.includes('Timeout')) {
+                errorMessage = "Request timed out. The prediction service may be busy. Please try again in a moment.";
+            } else if (errorMessage.includes('connect') || errorMessage.includes('network') || errorMessage.includes('fetch')) {
                 errorMessage = "Network error: Could not connect to prediction service. Please check your connection.";
-            } else if (errorMessage.includes('timeout')) {
-                errorMessage = "Request timed out. Please try again.";
             }
             
+            setWaterPredictionStatus('');
             toast.error(`Failed to predict water: ${errorMessage}`);
         } finally {
             setIsPredictingWater(false);
@@ -508,25 +525,20 @@ const MLPredictions = () => {
                             </select>
                         </div>
 
-                        {/* Year Input */}
+                        {/* Year Input - Fixed to 2025 */}
                         <div>
                             <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
                                 <Calendar size={14} className="text-blue-600" />
                                 Year
                             </label>
-                            <input
-                                type="number"
+                            <select
                                 value={waterYear}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    if (val >= 2000 && val <= 2100) {
-                                        setWaterYear(val);
-                                    }
-                                }}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium"
-                                min={2000}
-                                max={2100}
-                            />
+                                onChange={(e) => setWaterYear(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                {/* Currently the model exposes only 2025 as a valid choice */}
+                                <option value="2025">2025</option>
+                            </select>
                         </div>
 
                         {/* Temperature Dropdown */}
@@ -561,7 +573,7 @@ const MLPredictions = () => {
                         {isPredictingWater ? (
                             <>
                                 <Activity size={20} className="animate-spin" />
-                                Predicting Water Requirements...
+                                {waterPredictionStatus || 'Predicting Water Requirements...'}
                             </>
                         ) : (
                             <>
@@ -570,6 +582,16 @@ const MLPredictions = () => {
                             </>
                         )}
                     </button>
+                    
+                    {/* Status Message */}
+                    {isPredictingWater && waterPredictionStatus && (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-700 text-center flex items-center justify-center gap-2">
+                                <Activity size={16} className="animate-spin" />
+                                {waterPredictionStatus}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Water Prediction Result */}
                     {waterPrediction && (
@@ -598,7 +620,7 @@ const MLPredictions = () => {
                                     <div><span className="font-semibold text-slate-600">Soil:</span> <span className="text-slate-700">{waterPrediction.input?.soil || waterSoil}</span></div>
                                     <div><span className="font-semibold text-slate-600">Month:</span> <span className="text-slate-700">{waterPrediction.input?.month || waterMonth}</span></div>
                                     <div><span className="font-semibold text-slate-600">Season:</span> <span className="text-slate-700">{waterPrediction.input?.season || waterSeason}</span></div>
-                                    <div><span className="font-semibold text-slate-600">Year:</span> <span className="text-slate-700">{waterPrediction.input?.year || waterYear}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Year:</span> <span className="text-slate-700">{waterPrediction.input?.year || '2025'}</span></div>
                                     <div><span className="font-semibold text-slate-600">Temperature:</span> <span className="text-slate-700">{waterPrediction.input?.temperature || waterTemperature}°C</span></div>
                                 </div>
                             </div>

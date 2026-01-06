@@ -1,8 +1,48 @@
-import React from 'react';
-import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, Send, MessageSquare, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+
+const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
 
 const Contact = () => {
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [liveTitle, setLiveTitle] = useState('');
+  const [liveDescription, setLiveDescription] = useState('');
+  const [savingLink, setSavingLink] = useState(false);
+
+  const handleSaveLiveLink = async (e) => {
+    e.preventDefault();
+    if (!youtubeLink.trim()) {
+      toast.error('Please enter a YouTube live link');
+      return;
+    }
+    setSavingLink(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/live/set-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          youtubeLink: youtubeLink.trim(),
+          title: liveTitle.trim() || undefined,
+          description: liveDescription.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to save live link');
+      }
+      toast.success(data.message || 'Live link saved');
+      setYoutubeLink('');
+      setLiveTitle('');
+      setLiveDescription('');
+    } catch (err) {
+      toast.error(err.message || 'Failed to save live link');
+    } finally {
+      setSavingLink(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center pt-20 pb-12 px-6 lg:px-12 font-sans text-slate-900">
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -48,7 +88,7 @@ const Contact = () => {
         </div>
 
         {/* Right Side: Contact Form Card */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 shadow-2xl border border-slate-100 relative">
+        <div className="bg-white rounded-3xl p-8 lg:p-10 shadow-2xl border border-slate-100 relative space-y-10">
             <h2 className="text-3xl font-bold text-slate-800 mb-2">Send Message</h2>
             <p className="text-slate-500 mb-8">Fill out the form below and we'll get back to you shortly.</p>
             
@@ -108,6 +148,74 @@ const Contact = () => {
                     <Send size={20} /> Send Message
                 </motion.button>
             </form>
+
+            {/* Live Stream Link Setter */}
+            <div className="pt-6 border-t border-slate-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                  <LinkIcon size={18} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800">Set Live Stream Link</h3>
+                  <p className="text-sm text-slate-500">Save the active YouTube live link for the Image Detection page.</p>
+                </div>
+              </div>
+
+              <form className="space-y-4" onSubmit={handleSaveLiveLink}>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">YouTube Live Link</label>
+                  <input
+                    type="url"
+                    value={youtubeLink}
+                    onChange={(e) => setYoutubeLink(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Title (optional)</label>
+                    <input
+                      type="text"
+                      value={liveTitle}
+                      onChange={(e) => setLiveTitle(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                      placeholder="Live Workshop"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Description (optional)</label>
+                    <input
+                      type="text"
+                      value={liveDescription}
+                      onChange={(e) => setLiveDescription(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                      placeholder="Brief description"
+                    />
+                  </div>
+                </div>
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: savingLink ? 1 : 1.01 }}
+                  whileTap={{ scale: savingLink ? 1 : 0.99 }}
+                  disabled={savingLink}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  {savingLink ? (
+                    <>
+                      <Send size={18} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Save Live Link
+                    </>
+                  )}
+                </motion.button>
+              </form>
+            </div>
             
             <div className="mt-6 text-center pt-4 border-t border-slate-100">
                 <p className="text-xs text-slate-400">
