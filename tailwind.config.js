@@ -33,16 +33,16 @@ export default {
                     900: '#5d4030',  // Almost black brown
                 },
                 'harvest': {
-                    50: '#fff8e1',   // Light golden
-                    100: '#ffecb3',  // Pale gold
-                    200: '#ffe082',  // Light yellow
-                    300: '#ffd54f',  // Golden yellow
-                    400: '#ffca28',  // Bright gold
-                    500: '#ffc107',  // Amber gold
-                    600: '#ffb300',  // Deep gold
-                    700: '#ffa000',  // Orange gold
-                    800: '#ff8f00',  // Dark orange
-                    900: '#ff6f00',  // Deep orange
+                    50: '#faf7f0',   // Light cream (same as earth for consistency)
+                    100: '#f5ede0',  // Pale tan (same as earth)
+                    200: '#e8d4b8',  // Warm light brown
+                    300: '#d4b896',  // Warm tan
+                    400: '#c19d6f',  // Warm medium brown
+                    500: '#b88a5a',  // Rich warm brown
+                    600: '#a6754a',  // Dark warm brown
+                    700: '#8a5f3f',  // Deep warm brown
+                    800: '#714e38',  // Very dark brown
+                    900: '#5d4030',  // Almost black brown
                 },
                 'barn': {
                     50: '#fef2f2',

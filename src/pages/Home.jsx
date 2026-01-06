@@ -135,7 +135,7 @@ const Home = () => {
         HERO SECTION - Enhanced Modern Farmer Theme
         Integration of Organic + Tech Theme
       */}
-      <section className="relative bg-gradient-to-br from-harvest-100 via-harvest-50 to-earth-100 pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 lg:px-12 overflow-hidden">
+      <section className="relative bg-white pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 lg:px-12 overflow-hidden">
         
         {/* Organic Pattern Overlay */}
         <div className="absolute inset-0 pattern-organic opacity-20" />
@@ -149,8 +149,8 @@ const Home = () => {
         </div>
         
         {/* Floating Ambient Lights - Enhanced */}
-        <div className="absolute top-0 right-[-10%] w-[600px] h-[600px] bg-harvest-300/20 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
-        <div className="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-earth-300/15 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-0 right-[-10%] w-[600px] h-[600px] bg-earth-200/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
+        <div className="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-earth-200/10 rounded-full blur-[100px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '1s' }} />
 
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
             {/* Left Content */}
@@ -252,7 +252,7 @@ const Home = () => {
                 <div className="flex flex-col sm:flex-row gap-4 pt-6 justify-center lg:justify-start">
                     <motion.button 
                          onClick={() => navigate('/register')}
-                         className="px-8 py-4 bg-harvest-300 text-earth-900 font-black rounded-lg shadow-farm-lg hover:shadow-farm hover:scale-105 transition-all transform active:scale-95 flex items-center justify-center gap-2 border-2 border-harvest-400/40"
+                         className="px-8 py-4 bg-earth-700 text-white font-black rounded-lg shadow-farm-lg hover:shadow-farm hover:scale-105 transition-all transform active:scale-95 flex items-center justify-center gap-2 border-2 border-earth-800"
                          animate={{ 
                              opacity: [1, 0.5, 1],
                              boxShadow: [
@@ -271,7 +271,7 @@ const Home = () => {
                     </motion.button>
                     <button 
                          onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
-                         className="px-8 py-4 bg-harvest-600/20 backdrop-blur-xl border-2 border-harvest-400/40 text-harvest-100 font-black rounded-lg hover:bg-harvest-600/30 transition-all flex items-center justify-center shadow-rustic"
+                         className="px-8 py-4 bg-white backdrop-blur-xl border-2 border-earth-400 text-earth-800 font-black rounded-lg hover:bg-earth-50 transition-all flex items-center justify-center shadow-rustic"
                     >
                         Explore Features
                     </button>
@@ -349,7 +349,7 @@ const Home = () => {
       {/* 
         HOW IT WORKS / PROCESS SECTION - Enhanced
       */}
-      <section id="how-it-works" className="py-20 lg:py-32 bg-gradient-to-b from-earth-50 via-farm-bg to-earth-50 relative">
+      <section id="how-it-works" className="py-20 lg:py-32 bg-white relative">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -358,7 +358,7 @@ const Home = () => {
                 transition={{ duration: 0.6 }}
                 className="text-center mb-16 lg:mb-20"
               >
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-harvest-200 text-earth-800 font-black uppercase tracking-wider text-xs mb-4 border-2 border-harvest-300/50">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-earth-200 text-earth-800 font-black uppercase tracking-wider text-xs mb-4 border-2 border-earth-300/50">
                       <Sprout size={14} /> Simple & Natural
                   </div>
                   <h3 className="text-4xl lg:text-5xl font-black text-earth-900 mb-4">
@@ -378,7 +378,7 @@ const Home = () => {
                       step="01"
                       title="Setup Environment"
                       desc="Install sensors and lights. Our layout adapts to your vertical space."
-                      color="bg-orange-100 text-orange-600"
+                      color="bg-earth-200 text-earth-800"
                       delay={0.2}
                   />
                   <ProcessStep 
@@ -386,7 +386,7 @@ const Home = () => {
                       step="02"
                       title="Connect AIoT"
                       desc="Link your farm to the cloud. Our AI starts learning your crop patterns immediately."
-                      color="bg-blue-100 text-blue-600"
+                      color="bg-earth-200 text-earth-800"
                       delay={0.4}
                   />
                   <ProcessStep 
@@ -394,7 +394,7 @@ const Home = () => {
                       step="03"
                       title="Monitor & Grow"
                       desc="Watch your crops thrive via the dashboard while we handle the irrigation."
-                      color="bg-green-100 text-green-600"
+                      color="bg-earth-200 text-earth-800"
                       delay={0.6}
                   />
               </div>
@@ -404,7 +404,7 @@ const Home = () => {
       {/* 
         FEATURES SECTION - Enhanced Card Grid 
       */}
-      <section id="features" className="py-20 lg:py-32 bg-gradient-to-b from-earth-50 to-farm-bg relative">
+      <section id="features" className="py-20 lg:py-32 bg-white relative">
          <div className="max-w-7xl mx-auto px-6 lg:px-12">
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                  {/* Mobile: Text First, then Cards. Desktop: Text Right, Cards Left. */}
@@ -413,28 +413,28 @@ const Home = () => {
                         icon={Droplets}
                         title="Smart Irrigation"
                         desc="Precision watering saves 95% water."
-                        color="bg-blue-50 text-blue-600"
+                        color="bg-earth-100 text-earth-700"
                         delay={0.1}
                      />
                      <FeatureCard 
                         icon={Wind}
                         title="Climate Control"
                         desc="Maintain perfect temp & humidity."
-                        color="bg-slate-50 text-slate-600"
+                        color="bg-white text-earth-700"
                         delay={0.2}
                      />
                      <FeatureCard 
                         icon={Zap}
                         title="Energy Efficient"
                         desc="Optimized LED scheduling."
-                        color="bg-harvest-100 text-harvest-700"
+                        color="bg-earth-100 text-earth-700"
                         delay={0.3}
                      />
                      <FeatureCard 
                         icon={ShieldCheck}
                         title="Crop Health"
                         desc="AI disease detection & alerts."
-                        color="bg-emerald-50 text-emerald-600"
+                        color="bg-earth-100 text-earth-700"
                         delay={0.4}
                      />
                  </div>
@@ -502,17 +502,17 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="max-w-4xl mx-auto text-center relative z-10 mb-20"
           >
-              <div className="w-24 h-24 bg-harvest-300/30 rounded-full flex items-center justify-center mx-auto mb-8 backdrop-blur-xl border-2 border-harvest-400/40 shadow-farm-lg animate-float">
+              <div className="w-24 h-24 bg-earth-200 rounded-full flex items-center justify-center mx-auto mb-8 backdrop-blur-xl border-2 border-earth-400 shadow-farm-lg animate-float">
                   <Leaf className="text-earth-900" size={48} />
               </div>
-              <h2 className="text-5xl lg:text-6xl font-black text-harvest-100 mb-6">Ready for the <span className="text-gradient-harvest">Harvest?</span></h2>
-              <p className="text-xl text-harvest-100 mb-10 font-medium">
-                  Join hundreds of urban farmers transforming their yield with <span className="font-black text-harvest-200">AgriNex</span>.
+              <h2 className="text-5xl lg:text-6xl font-black text-earth-900 mb-6">Ready for the <span className="text-gradient-earth">Harvest?</span></h2>
+              <p className="text-xl text-earth-800 mb-10 font-medium">
+                  Join hundreds of urban farmers transforming their yield with <span className="font-black text-earth-900">AgriNex</span>.
               </p>
               
               <motion.button 
                   onClick={() => navigate('/register')}
-                  className="bg-harvest-300 text-earth-900 font-black py-6 px-14 rounded-2xl shadow-farm-lg hover:shadow-farm hover:scale-105 transition-all text-lg flex items-center gap-3 mx-auto border-2 border-harvest-400/50"
+                  className="bg-earth-700 text-white font-black py-6 px-14 rounded-2xl shadow-farm-lg hover:shadow-farm hover:scale-105 transition-all text-lg flex items-center gap-3 mx-auto border-2 border-earth-800"
                   animate={{ 
                       opacity: [1, 0.5, 1],
                       boxShadow: [
@@ -537,13 +537,13 @@ const Home = () => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="max-w-7xl mx-auto border-t border-harvest-400/30 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-harvest-200/80 text-sm relative z-10"
+            className="max-w-7xl mx-auto border-t border-earth-400/30 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-earth-200 text-sm relative z-10"
           >
               <p>© 2024 AIoT Smart Vertical Farming.</p>
               <div className="flex gap-8 flex-wrap justify-center">
-                  <span className="hover:text-harvest-100 cursor-pointer transition-colors">Privacy Policy</span>
-                  <span className="hover:text-harvest-100 cursor-pointer transition-colors">Terms of Service</span>
-                  <span className="hover:text-harvest-100 cursor-pointer transition-colors" onClick={() => navigate('/contact')}>Contact Support</span>
+                  <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                  <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
+                  <span className="hover:text-white cursor-pointer transition-colors" onClick={() => navigate('/contact')}>Contact Support</span>
               </div>
           </motion.div>
       </section>
