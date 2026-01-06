@@ -23,7 +23,7 @@ const Contact = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          youtubeLink: youtubeLink.trim(),
+          streamUrl: youtubeLink.trim(),
           title: liveTitle.trim() || undefined,
           description: liveDescription.trim() || undefined,
         }),

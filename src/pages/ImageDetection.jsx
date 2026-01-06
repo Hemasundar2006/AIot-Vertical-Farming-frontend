@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Camera, Video, Activity, RefreshCw, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import LiveAnalyzer from '../components/LiveAnalyzer.jsx';
 
 const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
 
@@ -32,7 +33,7 @@ const toEmbedUrl = (url) => {
 };
 
 const ImageDetection = () => {
-  const [liveLink, setLiveLink] = useState(null);
+  const [streamUrl, setStreamUrl] = useState(null);
   const [liveTitle, setLiveTitle] = useState('');
   const [liveDescription, setLiveDescription] = useState('');
   const [loading, setLoading] = useState(true);
@@ -43,22 +44,36 @@ const ImageDetection = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`${API_BASE_URL}/api/live/get-link`);
+        const res = await fetch(`${API_BASE_URL}/api/stream/get-stream`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error(data.message || 'Failed to fetch live link');
         }
-        if (data.data && data.data.youtubeLink) {
-          setLiveLink(data.data.youtubeLink);
+        if (data.data && data.data.streamUrl) {
+          setStreamUrl(data.data.streamUrl);
           setLiveTitle(data.data.title || 'Live Workshop Stream');
           setLiveDescription(data.data.description || 'Watch the live session directly inside your dashboard');
+          // Store for fallback use
+          window.localStorage.setItem('liveStreamUrl', data.data.streamUrl);
+          if (data.data.title) window.localStorage.setItem('liveTitle', data.data.title);
+          if (data.data.description) window.localStorage.setItem('liveDescription', data.data.description);
         } else {
-          setLiveLink(null);
+          setStreamUrl(null);
           setLiveTitle('No active live stream');
           setLiveDescription('Please set a YouTube live link from the Contact page.');
         }
       } catch (err) {
-        setError(err.message || 'Failed to fetch live link');
+        // Fallback to locally cached link (set in Contact page)
+        const cachedLink = window.localStorage.getItem('liveStreamUrl');
+        const cachedTitle = window.localStorage.getItem('liveTitle');
+        const cachedDesc = window.localStorage.getItem('liveDescription');
+        if (cachedLink) {
+          setStreamUrl(cachedLink);
+          setLiveTitle(cachedTitle || 'Live Workshop Stream');
+          setLiveDescription(cachedDesc || 'Watch the live session directly inside your dashboard');
+        } else {
+          setError(err.message || 'Failed to fetch live link');
+        }
       } finally {
         setLoading(false);
       }
@@ -67,7 +82,7 @@ const ImageDetection = () => {
     fetchLiveLink();
   }, []);
 
-  const embedUrl = useMemo(() => toEmbedUrl(liveLink) || 'https://www.youtube.com/embed/D8-BrAt9GDE', [liveLink]);
+  const embedUrl = useMemo(() => toEmbedUrl(streamUrl) || 'https://www.youtube.com/embed/D8-BrAt9GDE', [streamUrl]);
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] text-slate-900 pt-28 pb-12 px-4 lg:px-8 font-sans">
@@ -107,27 +122,26 @@ const ImageDetection = () => {
           </div>
 
           {/* YouTube Live Stream Embed */}
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+          <div className="relative w-full">
             {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 py-16">
                 <Activity className="animate-spin text-blue-600" size={24} />
                 <span className="ml-2 text-sm text-slate-600">Loading live stream...</span>
               </div>
             ) : error ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 rounded-xl border border-red-100 text-red-700 text-center px-4">
+              <div className="flex flex-col items-center justify-center bg-red-50 rounded-xl border border-red-100 text-red-700 text-center px-4 py-10">
                 <AlertTriangle size={24} className="mb-2" />
                 <p className="text-sm font-semibold">Failed to load live stream</p>
                 <p className="text-xs text-red-600 mt-1">{error}</p>
               </div>
+            ) : !streamUrl ? (
+              <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-100 text-slate-700 text-center px-4 py-10">
+                <RefreshCw className="mb-2 text-blue-600" size={24} />
+                <p className="text-sm font-semibold">Waiting for live link</p>
+                <p className="text-xs text-slate-500 mt-1">Set a YouTube live link in the Contact page.</p>
+              </div>
             ) : (
-              <iframe
-                className="absolute top-0 left-0 w-full h-full rounded-xl"
-                src={embedUrl}
-                title="YouTube live stream"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+              <LiveAnalyzer streamUrl={streamUrl} />
             )}
           </div>
 
