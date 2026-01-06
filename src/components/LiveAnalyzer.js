@@ -101,7 +101,7 @@ const LiveAnalyzer = ({ youtubeUrl }) => {
             transform: 'translate(-50%, -50%)',
             width: '100px',
             height: '100px',
-            border: '2px dashed yellow',
+            border: '2px dashed #b88a5a',
             pointerEvents: 'none',
           }}
         ></div>

@@ -59,7 +59,7 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-image: linear-gradient(to right, #D4A574, #F4A460, #FFC107); /* wheat to corn to gold */
+    background-image: linear-gradient(to right, #D4A574, #c9a373, #b88a5a); /* wheat to earth brown */
   }
   
   .text-gradient-earth {

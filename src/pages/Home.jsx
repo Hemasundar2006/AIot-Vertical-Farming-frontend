@@ -257,7 +257,7 @@ const Home = () => {
                              opacity: [1, 0.5, 1],
                              boxShadow: [
                                  '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                 '0 10px 25px -5px rgba(234, 179, 8, 0.4), 0 10px 10px -5px rgba(234, 179, 8, 0.2)',
+                                 '0 10px 25px -5px rgba(184, 138, 90, 0.4), 0 10px 10px -5px rgba(184, 138, 90, 0.2)',
                                  '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                              ]
                          }}
@@ -427,7 +427,7 @@ const Home = () => {
                         icon={Zap}
                         title="Energy Efficient"
                         desc="Optimized LED scheduling."
-                        color="bg-yellow-50 text-yellow-600"
+                        color="bg-harvest-100 text-harvest-700"
                         delay={0.3}
                      />
                      <FeatureCard 
@@ -517,7 +517,7 @@ const Home = () => {
                       opacity: [1, 0.5, 1],
                       boxShadow: [
                           '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                          '0 10px 25px -5px rgba(234, 179, 8, 0.4), 0 10px 10px -5px rgba(234, 179, 8, 0.2)',
+                          '0 10px 25px -5px rgba(184, 138, 90, 0.4), 0 10px 10px -5px rgba(184, 138, 90, 0.2)',
                           '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                       ]
                   }}

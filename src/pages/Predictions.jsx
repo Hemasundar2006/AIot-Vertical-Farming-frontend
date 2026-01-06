@@ -557,7 +557,7 @@ const MLPredictions = () => {
                         value="94.2%" 
                         subtext="Optimized LED schedules"
                         icon={Zap}
-                        color="bg-yellow-500"
+                        color="bg-harvest-500"
                     />
                      <PredictionCard 
                         title="Model Accuracy" 
