@@ -49,16 +49,19 @@ const MLPredictions = () => {
     const [isPredicting, setIsPredicting] = useState(false);
     
     // Water prediction states
+    const crops = ["Lettuce", "Microgreens", "Tomato", "Strawberry", "Pepper/Chili", "Eggplant", "Onion"];
+    const waterSoils = ["Clay", "Sandy", "Loamy"];
+    const waterSeasons = ["Summer", "Monsoon", "Winter"];
+    const waterMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const temperatures = [18, 20, 22, 25, 28, 30, 32, 35];
+    
     const [waterCrop, setWaterCrop] = useState("Lettuce");
     const [waterSoil, setWaterSoil] = useState("Clay");
     const [waterMonth, setWaterMonth] = useState("January");
     const [waterSeason, setWaterSeason] = useState("Summer");
-    // Year dropdown (Gradio expects a dropdown value, currently only 2025)
-    const [waterYear, setWaterYear] = useState("2025");
     const [waterTemperature, setWaterTemperature] = useState(25);
     const [waterPrediction, setWaterPrediction] = useState(null);
     const [isPredictingWater, setIsPredictingWater] = useState(false);
-    const [waterPredictionStatus, setWaterPredictionStatus] = useState('');
     
     // Options from backend
     const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Zaid"]);
@@ -167,105 +170,49 @@ const MLPredictions = () => {
     const handleWaterPrediction = async () => {
         setIsPredictingWater(true);
         setWaterPrediction(null);
-        setWaterPredictionStatus('Initializing...');
         
         try {
-            // Validate inputs (year is fixed to 2025)
-            if (!waterCrop || !waterSoil || !waterMonth || !waterSeason || !waterTemperature) {
-                throw new Error("Please fill in all fields");
-            }
-            
-            const validTemperatures = [18, 20, 22, 25, 28, 30, 32, 35];
-            if (!validTemperatures.includes(waterTemperature)) {
-                throw new Error("Temperature must be one of: 18, 20, 22, 25, 28, 30, 32, 35");
-            }
-            
-            // Params used for logging / display; we also keep year internally in case backend requires it
-            const predictionParams = {
+            const formData = {
                 crop: waterCrop,
                 soil: waterSoil,
                 month: waterMonth,
                 season: waterSeason,
-                year: waterYear,
-                temperature: String(waterTemperature),
+                temperature: waterTemperature,
+                // year is handled by backend internally
             };
             
-            console.log("Sending water prediction request:", predictionParams);
-            setWaterPredictionStatus('Sending prediction request...');
+            console.log("Sending water prediction request:", formData);
             
-            // Build query parameters (include year as some backends expect it,
-            // but they can ignore it if not needed)
-            const params = new URLSearchParams({
-                crop: waterCrop,
-                soil: waterSoil,
-                month: waterMonth,
-                season: waterSeason,
-                year: waterYear,
-                temperature: String(waterTemperature),
-            });
-            
-            // Endpoint kept in sync with backend route
-            const apiUrl = `${API_BASE_URL}/api/crop/predict-water?${params}`;
-            console.log("API URL:", apiUrl);
-            
-            setWaterPredictionStatus('Waiting for AI model response...');
-            
-            // Make GET request with timeout
-            const timeoutMs = 60000; // 60 seconds timeout
-            const fetchPromise = fetch(apiUrl, {
-                method: 'GET',
+            const response = await fetch(`${API_BASE_URL}/api/crop/predict-water`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify(formData),
             });
-
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Prediction timeout: Model took too long to respond. Please try again.')), timeoutMs)
-            );
-
-            const response = await Promise.race([fetchPromise, timeoutPromise]);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Server error: ${response.status} ${response.statusText}`);
+                console.error("Error response:", errorData);
+                throw new Error(errorData.error || 'Water prediction failed');
             }
 
             const data = await response.json();
             console.log("Water Prediction Response:", data);
             
-            setWaterPredictionStatus('Processing results...');
-            
-            // Check if prediction exists in response
+            // data.prediction already contains: "💧 Water Required: X Liters / Month"
             if (data.prediction) {
                 setWaterPrediction({
                     prediction: data.prediction,
-                    input: data.input || predictionParams
+                    input: formData
                 });
-                setWaterPredictionStatus('');
-                toast.success(data.message || "Water prediction generated successfully!");
+                toast.success("Water prediction generated successfully!");
             } else {
-                throw new Error(data.message || "No prediction returned from API. Response: " + JSON.stringify(data));
+                throw new Error("No prediction returned from API. Response: " + JSON.stringify(data));
             }
         } catch (error) {
             console.error("Water prediction error:", error);
-            let errorMessage = "Unknown error occurred";
-            
-            if (error.message) {
-                errorMessage = error.message;
-            } else if (typeof error === 'string') {
-                errorMessage = error;
-            } else if (error.toString) {
-                errorMessage = error.toString();
-            }
-            
-            // Provide more helpful error messages
-            if (errorMessage.includes('timeout') || errorMessage.includes('Timeout')) {
-                errorMessage = "Request timed out. The prediction service may be busy. Please try again in a moment.";
-            } else if (errorMessage.includes('connect') || errorMessage.includes('network') || errorMessage.includes('fetch')) {
-                errorMessage = "Network error: Could not connect to prediction service. Please check your connection.";
-            }
-            
-            setWaterPredictionStatus('');
+            const errorMessage = error?.message || error?.toString() || "Unknown error occurred";
             toast.error(`Failed to predict water: ${errorMessage}`);
         } finally {
             setIsPredictingWater(false);
@@ -458,13 +405,9 @@ const MLPredictions = () => {
                                 onChange={(e) => setWaterCrop(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
                             >
-                                <option value="Lettuce">Lettuce</option>
-                                <option value="Microgreens">Microgreens</option>
-                                <option value="Tomato">Tomato</option>
-                                <option value="Strawberry">Strawberry</option>
-                                <option value="Pepper/Chili">Pepper/Chili</option>
-                                <option value="Eggplant">Eggplant</option>
-                                <option value="Onion">Onion</option>
+                                {crops.map((crop) => (
+                                    <option key={crop} value={crop}>{crop}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -479,9 +422,9 @@ const MLPredictions = () => {
                                 onChange={(e) => setWaterSoil(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
                             >
-                                <option value="Clay">Clay</option>
-                                <option value="Sandy">Sandy</option>
-                                <option value="Loamy">Loamy</option>
+                                {waterSoils.map((soil) => (
+                                    <option key={soil} value={soil}>{soil}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -496,18 +439,9 @@ const MLPredictions = () => {
                                 onChange={(e) => setWaterMonth(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
                             >
-                                <option value="January">January</option>
-                                <option value="February">February</option>
-                                <option value="March">March</option>
-                                <option value="April">April</option>
-                                <option value="May">May</option>
-                                <option value="June">June</option>
-                                <option value="July">July</option>
-                                <option value="August">August</option>
-                                <option value="September">September</option>
-                                <option value="October">October</option>
-                                <option value="November">November</option>
-                                <option value="December">December</option>
+                                {waterMonths.map((month) => (
+                                    <option key={month} value={month}>{month}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -522,25 +456,9 @@ const MLPredictions = () => {
                                 onChange={(e) => setWaterSeason(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
                             >
-                                <option value="Summer">Summer</option>
-                                <option value="Monsoon">Monsoon</option>
-                                <option value="Winter">Winter</option>
-                            </select>
-                        </div>
-
-                        {/* Year Input - Fixed to 2025 */}
-                        <div>
-                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
-                                <Calendar size={14} className="text-blue-600" />
-                                Year
-                            </label>
-                            <select
-                                value={waterYear}
-                                onChange={(e) => setWaterYear(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
-                            >
-                                {/* Currently the model exposes only 2025 as a valid choice */}
-                                <option value="2025">2025</option>
+                                {waterSeasons.map((season) => (
+                                    <option key={season} value={season}>{season}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -555,14 +473,9 @@ const MLPredictions = () => {
                                 onChange={(e) => setWaterTemperature(Number(e.target.value))}
                                 className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
                             >
-                                <option value={18}>18°C</option>
-                                <option value={20}>20°C</option>
-                                <option value={22}>22°C</option>
-                                <option value={25}>25°C</option>
-                                <option value={28}>28°C</option>
-                                <option value={30}>30°C</option>
-                                <option value={32}>32°C</option>
-                                <option value={35}>35°C</option>
+                                {temperatures.map((temp) => (
+                                    <option key={temp} value={temp}>{temp}°C</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -576,25 +489,15 @@ const MLPredictions = () => {
                         {isPredictingWater ? (
                             <>
                                 <Activity size={20} className="animate-spin" />
-                                {waterPredictionStatus || 'Predicting Water Requirements...'}
+                                Predicting Water Requirements...
                             </>
                         ) : (
                             <>
                                 <Droplets size={20} />
-                                Predict Water Requirements
+                                Predict Water Requirement
                             </>
                         )}
                     </button>
-                    
-                    {/* Status Message */}
-                    {isPredictingWater && waterPredictionStatus && (
-                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-700 text-center flex items-center justify-center gap-2">
-                                <Activity size={16} className="animate-spin" />
-                                {waterPredictionStatus}
-                            </p>
-                        </div>
-                    )}
 
                     {/* Water Prediction Result */}
                     {waterPrediction && (
@@ -623,7 +526,7 @@ const MLPredictions = () => {
                                     <div><span className="font-semibold text-slate-600">Soil:</span> <span className="text-slate-700">{waterPrediction.input?.soil || waterSoil}</span></div>
                                     <div><span className="font-semibold text-slate-600">Month:</span> <span className="text-slate-700">{waterPrediction.input?.month || waterMonth}</span></div>
                                     <div><span className="font-semibold text-slate-600">Season:</span> <span className="text-slate-700">{waterPrediction.input?.season || waterSeason}</span></div>
-                                    <div><span className="font-semibold text-slate-600">Year:</span> <span className="text-slate-700">{waterPrediction.input?.year || '2025'}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Year:</span> <span className="text-slate-700">2025</span></div>
                                     <div><span className="font-semibold text-slate-600">Temperature:</span> <span className="text-slate-700">{waterPrediction.input?.temperature || waterTemperature}°C</span></div>
                                 </div>
                             </div>
