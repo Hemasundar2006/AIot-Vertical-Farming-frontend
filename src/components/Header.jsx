@@ -13,6 +13,7 @@ const Header = () => {
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showPredictionMenu, setShowPredictionMenu] = useState(false);
 
   const handleLogout = () => {
       logout();
@@ -49,19 +50,63 @@ const Header = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-            {navLinks.filter(l => l.showAlways).map((link) => (
+        <nav className="hidden md:flex items-center gap-8 relative">
+          {navLinks.filter((l) => l.showAlways).map((link) => (
+            <button
+              key={link.name}
+              onClick={() => handleNav(link.path)}
+              className={clsx(
+                'text-sm font-medium transition-colors hover:text-white',
+                location.pathname === link.path ? 'text-white font-bold' : 'text-emerald-100/80'
+              )}
+            >
+              {link.name}
+            </button>
+          ))}
+
+          {/* Crop Layout dropdown for Horizontal / Vertical prediction */}
+          <div className="relative">
+            <button
+              onClick={() => setShowPredictionMenu((prev) => !prev)}
+              className={clsx(
+                'text-sm font-medium transition-colors hover:text-white flex items-center gap-1',
+                location.pathname === '/horizontal-farming' || location.pathname === '/vertical-farming'
+                  ? 'text-white font-bold'
+                  : 'text-emerald-100/80'
+              )}
+            >
+              Crop Layout
+              <span className="text-xs">{showPredictionMenu ? '▲' : '▼'}</span>
+            </button>
+            {showPredictionMenu && (
+              <div className="absolute mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-lg py-1 z-50">
                 <button
-                    key={link.name}
-                    onClick={() => handleNav(link.path)}
-                    className={clsx(
-                        "text-sm font-medium transition-colors hover:text-white",
-                        location.pathname === link.path ? "text-white font-bold" : "text-emerald-100/80"
-                    )}
+                  onClick={() => {
+                    handleNav('/horizontal-farming');
+                    setShowPredictionMenu(false);
+                  }}
+                  className={clsx(
+                    'w-full text-left px-4 py-2 text-sm hover:bg-slate-800',
+                    location.pathname === '/horizontal-farming' ? 'text-emerald-300' : 'text-slate-100'
+                  )}
                 >
-                    {link.name}
+                  🌾 Horizontal Prediction
                 </button>
-            ))}
+                <button
+                  onClick={() => {
+                    handleNav('/vertical-farming');
+                    setShowPredictionMenu(false);
+                  }}
+                  className={clsx(
+                    'w-full text-left px-4 py-2 text-sm hover:bg-slate-800',
+                    location.pathname === '/vertical-farming' ? 'text-emerald-300' : 'text-slate-100'
+                  )}
+                >
+                  🌱 Vertical Prediction
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Right Side Actions */}
@@ -171,6 +216,41 @@ const Header = () => {
                             </button>
                         );
                     })}
+
+                    {/* Mobile entries for Crop Layout predictions */}
+                    <button
+                      onClick={() => handleNav('/horizontal-farming')}
+                      className={clsx(
+                        'flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-200 group text-left',
+                        location.pathname === '/horizontal-farming'
+                          ? 'bg-white text-[#688557] shadow-lg translate-x-2'
+                          : 'hover:bg-white/10 text-emerald-50 hover:translate-x-1'
+                      )}
+                    >
+                      <div className="p-2 rounded-xl bg-white/5">
+                        <Brain size={24} />
+                      </div>
+                      <div>
+                        <span className="block text-lg font-bold">Horizontal Prediction</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleNav('/vertical-farming')}
+                      className={clsx(
+                        'flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-200 group text-left',
+                        location.pathname === '/vertical-farming'
+                          ? 'bg-white text-[#688557] shadow-lg translate-x-2'
+                          : 'hover:bg-white/10 text-emerald-50 hover:translate-x-1'
+                      )}
+                    >
+                      <div className="p-2 rounded-xl bg-white/5">
+                        <Brain size={24} />
+                      </div>
+                      <div>
+                        <span className="block text-lg font-bold">Vertical Prediction</span>
+                      </div>
+                    </button>
                     
                     {/* Divider */}
                     <div className="h-px bg-white/10 my-2" />

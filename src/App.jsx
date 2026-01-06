@@ -9,6 +9,9 @@ import MoistureChart from './components/MoistureChart';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MLPredictions from './pages/Predictions';
+import SmartFarmingPrediction from './pages/SmartFarmingPrediction';
+import HorizontalFarming from './pages/HorizontalFarming';
+import VerticalFarming from './pages/VerticalFarming';
 import Contact from './pages/Contact';
 import ChatBot from './pages/ChatBot';
 import { Toaster } from 'react-hot-toast';
@@ -71,6 +74,9 @@ function App() {
                 <Route path="/dashboard" element={<PrivateRoute><MainLayout><Dashboard /></MainLayout></PrivateRoute>} />
                 
                 <Route path="/predictions" element={<PrivateRoute><MainLayout><MLPredictions /></MainLayout></PrivateRoute>} />
+                <Route path="/smart-prediction" element={<PrivateRoute><MainLayout><SmartFarmingPrediction /></MainLayout></PrivateRoute>} />
+                <Route path="/horizontal-farming" element={<PrivateRoute><MainLayout><HorizontalFarming /></MainLayout></PrivateRoute>} />
+                <Route path="/vertical-farming" element={<PrivateRoute><MainLayout><VerticalFarming /></MainLayout></PrivateRoute>} />
                 <Route path="/sensor-data" element={<PrivateRoute><MainLayout><SensorData /></MainLayout></PrivateRoute>} />
                 <Route path="/image-detection" element={<MainLayout><ImageDetection /></MainLayout>} />
                 <Route path="/chatbot" element={<MainLayout><ChatBot /></MainLayout>} />
