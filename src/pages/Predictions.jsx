@@ -3,6 +3,7 @@ import { Brain, Droplets, Sprout, Activity, Zap, Timer, Bot, Scan, Target, Chevr
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import toast from 'react-hot-toast';
+import { Client } from '@gradio/client';
 
 const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
 
@@ -47,6 +48,16 @@ const MLPredictions = () => {
     const [soilType, setSoilType] = useState("Clay");
     const [predictedCrop, setPredictedCrop] = useState(null);
     const [isPredicting, setIsPredicting] = useState(false);
+    
+    // Water prediction states
+    const [waterCrop, setWaterCrop] = useState("Lettuce");
+    const [waterSoil, setWaterSoil] = useState("Clay");
+    const [waterMonth, setWaterMonth] = useState("January");
+    const [waterSeason, setWaterSeason] = useState("Summer");
+    const [waterYear, setWaterYear] = useState(2025);
+    const [waterTemperature, setWaterTemperature] = useState(25);
+    const [waterPrediction, setWaterPrediction] = useState(null);
+    const [isPredictingWater, setIsPredictingWater] = useState(false);
     
     // Options from backend
     const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Zaid"]);
@@ -149,6 +160,96 @@ const MLPredictions = () => {
     const runAnalysis = () => {
         setAnalyzing(true);
         setTimeout(() => setAnalyzing(false), 2500);
+    };
+
+    // Water prediction handler using Gradio client
+    const handleWaterPrediction = async () => {
+        setIsPredictingWater(true);
+        setWaterPrediction(null);
+        
+        try {
+            // Validate inputs
+            if (!waterCrop || !waterSoil || !waterMonth || !waterSeason || !waterYear || !waterTemperature) {
+                throw new Error("Please fill in all fields");
+            }
+            
+            if (waterYear < 2000 || waterYear > 2100) {
+                throw new Error("Year must be between 2000 and 2100");
+            }
+            
+            const validTemperatures = [18, 20, 22, 25, 28, 30, 32, 35];
+            if (!validTemperatures.includes(waterTemperature)) {
+                throw new Error("Temperature must be one of: 18, 20, 22, 25, 28, 30, 32, 35");
+            }
+            
+            console.log("Connecting to Gradio client: sumiyon/water_only");
+            
+            // Connect to Gradio client
+            const client = await Client.connect("sumiyon/water_only");
+            
+            console.log("Calling predict_water with parameters:", {
+                crop: waterCrop,
+                soil: waterSoil,
+                month: waterMonth,
+                season: waterSeason,
+                year: String(waterYear),
+                temperature: String(waterTemperature),
+            });
+            
+            // Call the Gradio API
+            const result = await client.predict("/predict_water", {
+                crop: waterCrop,
+                soil: waterSoil,
+                month: waterMonth,
+                season: waterSeason,
+                year: String(waterYear),
+                temperature: String(waterTemperature),
+            });
+
+            console.log("Water Prediction Response:", result.data);
+            
+            // Gradio returns data as an array, first element is the prediction string
+            const predictionText = result.data && result.data[0] ? result.data[0] : null;
+            
+            if (predictionText) {
+                setWaterPrediction({
+                    prediction: predictionText,
+                    input: {
+                        crop: waterCrop,
+                        soil: waterSoil,
+                        month: waterMonth,
+                        season: waterSeason,
+                        year: String(waterYear),
+                        temperature: String(waterTemperature),
+                    }
+                });
+                toast.success("Water prediction generated successfully!");
+            } else {
+                throw new Error("No prediction returned from API. Response: " + JSON.stringify(result));
+            }
+        } catch (error) {
+            console.error("Water prediction error:", error);
+            let errorMessage = "Unknown error occurred";
+            
+            if (error.message) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error.toString) {
+                errorMessage = error.toString();
+            }
+            
+            // Provide more helpful error messages
+            if (errorMessage.includes('connect') || errorMessage.includes('network')) {
+                errorMessage = "Network error: Could not connect to prediction service. Please check your connection.";
+            } else if (errorMessage.includes('timeout')) {
+                errorMessage = "Request timed out. Please try again.";
+            }
+            
+            toast.error(`Failed to predict water: ${errorMessage}`);
+        } finally {
+            setIsPredictingWater(false);
+        }
     };
 
     const yieldData = [
@@ -304,6 +405,203 @@ const MLPredictions = () => {
                                 <p className="text-4xl font-extrabold text-[#688557] text-center">{predictedCrop}</p>
                             </div>
                             <p className="text-sm text-slate-500 text-center">Based on your selected parameters: {year}, {season}, {month}, {soilType}</p>
+                        </motion.div>
+                    )}
+                </motion.div>
+
+                {/* Water Prediction Form Section */}
+                <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 mb-10"
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                            <Droplets className="text-blue-600" size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-slate-800">Water Prediction</h2>
+                            <p className="text-slate-500 text-sm">Get AI-powered water requirement predictions for your crops</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        {/* Crop Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Sprout size={14} className="text-blue-600" />
+                                Crop
+                            </label>
+                            <select
+                                value={waterCrop}
+                                onChange={(e) => setWaterCrop(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                <option value="Lettuce">Lettuce</option>
+                                <option value="Microgreens">Microgreens</option>
+                                <option value="Tomato">Tomato</option>
+                                <option value="Strawberry">Strawberry</option>
+                                <option value="Pepper/Chili">Pepper/Chili</option>
+                                <option value="Eggplant">Eggplant</option>
+                                <option value="Onion">Onion</option>
+                            </select>
+                        </div>
+
+                        {/* Soil Type Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Layers size={14} className="text-blue-600" />
+                                Soil Type
+                            </label>
+                            <select
+                                value={waterSoil}
+                                onChange={(e) => setWaterSoil(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                <option value="Clay">Clay</option>
+                                <option value="Sandy">Sandy</option>
+                                <option value="Loamy">Loamy</option>
+                            </select>
+                        </div>
+
+                        {/* Month Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Calendar size={14} className="text-blue-600" />
+                                Month
+                            </label>
+                            <select
+                                value={waterMonth}
+                                onChange={(e) => setWaterMonth(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+
+                        {/* Season Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Sun size={14} className="text-blue-600" />
+                                Season
+                            </label>
+                            <select
+                                value={waterSeason}
+                                onChange={(e) => setWaterSeason(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                <option value="Summer">Summer</option>
+                                <option value="Monsoon">Monsoon</option>
+                                <option value="Winter">Winter</option>
+                            </select>
+                        </div>
+
+                        {/* Year Input */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Calendar size={14} className="text-blue-600" />
+                                Year
+                            </label>
+                            <input
+                                type="number"
+                                value={waterYear}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    if (val >= 2000 && val <= 2100) {
+                                        setWaterYear(val);
+                                    }
+                                }}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium"
+                                min={2000}
+                                max={2100}
+                            />
+                        </div>
+
+                        {/* Temperature Dropdown */}
+                        <div>
+                            <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                <Zap size={14} className="text-blue-600" />
+                                Temperature (°C)
+                            </label>
+                            <select
+                                value={waterTemperature}
+                                onChange={(e) => setWaterTemperature(Number(e.target.value))}
+                                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-600 focus:outline-none transition-colors text-slate-800 font-medium bg-white cursor-pointer"
+                            >
+                                <option value={18}>18°C</option>
+                                <option value={20}>20°C</option>
+                                <option value={22}>22°C</option>
+                                <option value={25}>25°C</option>
+                                <option value={28}>28°C</option>
+                                <option value={30}>30°C</option>
+                                <option value={32}>32°C</option>
+                                <option value={35}>35°C</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Predict Water Button */}
+                    <button
+                        onClick={handleWaterPrediction}
+                        disabled={isPredictingWater}
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                    >
+                        {isPredictingWater ? (
+                            <>
+                                <Activity size={20} className="animate-spin" />
+                                Predicting Water Requirements...
+                            </>
+                        ) : (
+                            <>
+                                <Droplets size={20} />
+                                Predict Water Requirements
+                            </>
+                        )}
+                    </button>
+
+                    {/* Water Prediction Result */}
+                    {waterPrediction && (
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="mt-6 p-8 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 shadow-lg"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                    <Droplets className="text-white" size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">Water Prediction Result</h3>
+                            </div>
+                            
+                            <div className="bg-white rounded-lg p-6 mb-4">
+                                <p className="text-lg text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                    {waterPrediction.prediction}
+                                </p>
+                            </div>
+                            
+                            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Input Parameters</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                                    <div><span className="font-semibold text-slate-600">Crop:</span> <span className="text-slate-700">{waterPrediction.input?.crop || waterCrop}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Soil:</span> <span className="text-slate-700">{waterPrediction.input?.soil || waterSoil}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Month:</span> <span className="text-slate-700">{waterPrediction.input?.month || waterMonth}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Season:</span> <span className="text-slate-700">{waterPrediction.input?.season || waterSeason}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Year:</span> <span className="text-slate-700">{waterPrediction.input?.year || waterYear}</span></div>
+                                    <div><span className="font-semibold text-slate-600">Temperature:</span> <span className="text-slate-700">{waterPrediction.input?.temperature || waterTemperature}°C</span></div>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
                 </motion.div>
