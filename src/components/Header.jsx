@@ -36,139 +36,246 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 p-8 right-0 z-50 bg-[#688557]/95 backdrop-blur-md border-b border-white/20 h-16">
-      <div className="flex items-center justify-between px-6 lg:px-12 h-full">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-earth-800 via-earth-700 to-earth-800 backdrop-blur-md border-b-2 border-earth-600/50 shadow-farm-lg h-20" style={{ backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(107, 78, 61, 0.15) 2px, rgba(107, 78, 61, 0.15) 4px)' }}>
+      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-12 h-full max-w-7xl mx-auto">
         
-        {/* Logo */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
-            <Leaf color="white" size={24} />
+        {/* Logo - Enhanced Rustic farmer theme */}
+        <motion.div 
+          className="flex items-center gap-3 cursor-pointer group" 
+          onClick={() => navigate('/')}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+            <div className="relative bg-gradient-to-br from-earth-600 to-earth-800 p-2.5 rounded-xl shadow-rustic group-hover:shadow-farm transition-all duration-300 group-hover:scale-110 border-2 border-earth-500/40 overflow-hidden">
+                <Leaf className="text-harvest-200 relative z-10" size={28} />
+                <div className="absolute inset-0 bg-harvest-500/20 rounded-xl group-hover:bg-harvest-500/30 transition-colors" />
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div>
-            <h1 className="text-xl font-bold text-green-300 tracking-wide">A<span className="text-white">gri<span className="text-green-300">N<span className="text-white">ex</span></span></span></h1>
+            <h1 className="text-2xl font-black text-harvest-100 tracking-tight group-hover:text-harvest-50 transition-colors">
+                <span className="text-harvest-300 group-hover:text-harvest-200 transition-colors">Agri</span><span className="text-harvest-100">Nex</span>
+            </h1>
+            <p className="text-[9px] text-harvest-200/70 font-bold uppercase tracking-widest -mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Smart Farm</p>
             </div>
-        </div>
+        </motion.div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 relative">
-          {navLinks.filter((l) => l.showAlways).map((link) => (
-            <button
-              key={link.name}
-              onClick={() => handleNav(link.path)}
-              className={clsx(
-                'text-sm font-medium transition-colors hover:text-white',
-                location.pathname === link.path ? 'text-white font-bold' : 'text-emerald-100/80'
-              )}
-            >
-              {link.name}
-            </button>
-          ))}
+        {/* Desktop Navigation - Enhanced with animations */}
+        <nav className="hidden md:flex items-center gap-1.5 relative">
+          {navLinks.filter((l) => l.showAlways).map((link) => {
+            const Icon = link.icon;
+            const isActive = location.pathname === link.path;
+            return (
+              <motion.button
+                key={link.name}
+                onClick={() => handleNav(link.path)}
+                whileHover={{ scale: 1.05, y: -1 }}
+                whileTap={{ scale: 0.95 }}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative overflow-hidden',
+                  isActive 
+                    ? 'bg-harvest-500/40 text-harvest-50 shadow-farm border-2 border-harvest-400/50' 
+                    : 'text-harvest-200/90 hover:text-harvest-100 hover:bg-harvest-600/25 hover:border-harvest-500/40 border-2 border-transparent'
+                )}
+              >
+                <div className={clsx(
+                  'absolute inset-0 bg-gradient-to-r from-harvest-500/20 to-transparent opacity-0 transition-opacity',
+                  isActive ? 'opacity-100' : 'group-hover:opacity-100'
+                )} />
+                <Icon size={18} className="relative z-10" />
+                <span className="relative z-10">{link.name}</span>
+                {isActive && (
+                  <motion.div 
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-harvest-300"
+                    layoutId="activeTab"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            );
+          })}
 
-          {/* Crop Layout dropdown for Horizontal / Vertical prediction */}
+          {/* Crop Layout dropdown - Enhanced with animations */}
           <div className="relative">
-            <button
+            <motion.button
               onClick={() => setShowPredictionMenu((prev) => !prev)}
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
               className={clsx(
-                'text-sm font-medium transition-colors hover:text-white flex items-center gap-1',
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative overflow-hidden',
                 location.pathname === '/horizontal-farming' || location.pathname === '/vertical-farming'
-                  ? 'text-white font-bold'
-                  : 'text-emerald-100/80'
+                  ? 'bg-harvest-500/40 text-harvest-50 shadow-farm border-2 border-harvest-400/50'
+                  : 'text-harvest-200/90 hover:text-harvest-100 hover:bg-harvest-600/25 hover:border-harvest-500/40 border-2 border-transparent'
               )}
             >
-              Crop Layout
-              <span className="text-xs">{showPredictionMenu ? '▲' : '▼'}</span>
-            </button>
-            {showPredictionMenu && (
-              <div className="absolute mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-lg py-1 z-50">
-                <button
-                  onClick={() => {
-                    handleNav('/horizontal-farming');
-                    setShowPredictionMenu(false);
-                  }}
-                  className={clsx(
-                    'w-full text-left px-4 py-2 text-sm hover:bg-slate-800',
-                    location.pathname === '/horizontal-farming' ? 'text-emerald-300' : 'text-slate-100'
-                  )}
+              <div className="absolute inset-0 bg-gradient-to-r from-harvest-500/20 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+              <Brain size={18} className="relative z-10" />
+              <span className="relative z-10">Crop Layout</span>
+              <motion.span 
+                className="text-xs relative z-10"
+                animate={{ rotate: showPredictionMenu ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                ▼
+              </motion.span>
+            </motion.button>
+            <AnimatePresence>
+              {showPredictionMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute mt-2 w-60 bg-harvest-50/98 backdrop-blur-xl border-2 border-harvest-300/60 rounded-xl shadow-farm-lg py-2 z-50 overflow-hidden"
                 >
-                  🌾 Horizontal Prediction
-                </button>
-                <button
-                  onClick={() => {
-                    handleNav('/vertical-farming');
-                    setShowPredictionMenu(false);
-                  }}
-                  className={clsx(
-                    'w-full text-left px-4 py-2 text-sm hover:bg-slate-800',
-                    location.pathname === '/vertical-farming' ? 'text-emerald-300' : 'text-slate-100'
-                  )}
-                >
-                  🌱 Vertical Prediction
-                </button>
-              </div>
-            )}
+                  <div className="absolute inset-0 bg-gradient-to-br from-harvest-100/60 to-harvest-50/60 pointer-events-none" />
+                  <motion.button
+                    onClick={() => {
+                      handleNav('/horizontal-farming');
+                      setShowPredictionMenu(false);
+                    }}
+                    whileHover={{ x: 4, backgroundColor: 'rgba(212, 165, 116, 0.3)' }}
+                    className={clsx(
+                      'relative w-full text-left px-4 py-3 text-sm font-bold transition-all flex items-center gap-3 rounded-lg mx-1',
+                      location.pathname === '/horizontal-farming' 
+                        ? 'text-earth-900 bg-harvest-300/60 shadow-inner' 
+                        : 'text-earth-800 hover:bg-harvest-200/40'
+                    )}
+                  >
+                    <span className="text-xl">🌾</span>
+                    <span>Horizontal Prediction</span>
+                    {location.pathname === '/horizontal-farming' && (
+                      <motion.div 
+                        className="ml-auto w-2 h-2 rounded-full bg-earth-800"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                      />
+                    )}
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      handleNav('/vertical-farming');
+                      setShowPredictionMenu(false);
+                    }}
+                    whileHover={{ x: 4, backgroundColor: 'rgba(212, 165, 116, 0.3)' }}
+                    className={clsx(
+                      'relative w-full text-left px-4 py-3 text-sm font-bold transition-all flex items-center gap-3 rounded-lg mx-1',
+                      location.pathname === '/vertical-farming' 
+                        ? 'text-earth-900 bg-harvest-300/60 shadow-inner' 
+                        : 'text-earth-800 hover:bg-harvest-200/40'
+                    )}
+                  >
+                    <span className="text-xl">🌱</span>
+                    <span>Vertical Prediction</span>
+                    {location.pathname === '/vertical-farming' && (
+                      <motion.div 
+                        className="ml-auto w-2 h-2 rounded-full bg-earth-800"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                      />
+                    )}
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </nav>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-4">
-           {/* System Status Indicator (Hidden on small mobile) */}
-           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700">
-               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-               <span className="text-xs font-medium text-slate-300">
-                 {isConnected ? 'Online' : 'Offline'}
+        {/* Right Side Actions - Enhanced */}
+        <div className="flex items-center gap-2 sm:gap-3">
+           {/* System Status Indicator - Enhanced */}
+           <motion.div 
+             className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-harvest-600/25 backdrop-blur-sm border-2 border-harvest-500/40 shadow-rustic"
+             whileHover={{ scale: 1.05 }}
+           >
+               <motion.div 
+                 className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-harvest-400' : 'bg-red-500'}`}
+                 animate={isConnected ? { 
+                   scale: [1, 1.2, 1],
+                   opacity: [1, 0.7, 1]
+                 } : {}}
+                 transition={{ duration: 2, repeat: Infinity }}
+               />
+               <span className="text-xs font-black text-harvest-100">
+                 {isConnected ? 'Live' : 'Offline'}
                </span>
-           </div>
+           </motion.div>
 
-           {/* Desktop Auth Buttons */}
+           {/* Desktop Auth Buttons - Enhanced */}
            {!user && (
-               <div className="hidden md:flex items-center gap-4">
-                   <button 
+               <div className="hidden md:flex items-center gap-3">
+                   <motion.button 
                        onClick={() => handleNav('/register')}
-                       className="bg-white text-[#688557] px-6 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-emerald-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                       whileHover={{ scale: 1.05, y: -1 }}
+                       whileTap={{ scale: 0.95 }}
+                       className="bg-gradient-to-br from-harvest-500 to-harvest-600 text-earth-900 px-6 py-2.5 rounded-xl text-sm font-black shadow-rustic hover:shadow-farm transition-all border-2 border-harvest-400/50 relative overflow-hidden group"
                    >
-                       Get Started
-                   </button>
+                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                       <span className="relative z-10">Get Started</span>
+                   </motion.button>
                </div>
            )}
 
            {user && (
                <div className="relative hidden md:block">
-                    <button 
+                    <motion.button 
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
-                        className="flex items-center gap-3 focus:outline-none"
+                        className="flex items-center gap-3 focus:outline-none group"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                     >
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 border border-white/20 flex items-center justify-center text-xs font-bold text-white">
-                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-harvest-500 to-harvest-600 border-2 border-harvest-300/50 flex items-center justify-center text-sm font-black text-earth-900 shadow-rustic group-hover:shadow-farm transition-all relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <span className="relative z-10">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
                         </div>
-                    </button>
+                    </motion.button>
 
-                    {showProfileMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl py-1 z-50">
-                            <div className="px-4 py-2 border-b border-slate-700 mb-1">
-                                <p className="text-sm font-medium text-white truncate">{user.name}</p>
-                                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                    <AnimatePresence>
+                      {showProfileMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 mt-2 w-60 bg-harvest-50/98 backdrop-blur-xl border-2 border-harvest-300/60 rounded-xl shadow-farm-lg py-2 z-50 overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-harvest-100/60 to-harvest-50/60 pointer-events-none" />
+                            <div className="relative px-4 py-3 border-b border-harvest-200/60 mb-1">
+                                <p className="text-sm font-black text-earth-900 truncate">{user.name}</p>
+                                <p className="text-xs text-earth-700 truncate font-medium">{user.email}</p>
                             </div>
-                            <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2">
+                            <motion.button 
+                              className="relative w-full text-left px-4 py-2.5 text-sm font-bold text-earth-800 hover:bg-harvest-200/50 transition-all flex items-center gap-2 rounded-lg mx-1"
+                              whileHover={{ x: 4 }}
+                            >
                                 <Settings size={16} /> Settings
-                            </button>
-                            <button 
+                            </motion.button>
+                            <motion.button 
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 flex items-center gap-2"
+                                className="relative w-full text-left px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-100 transition-all flex items-center gap-2 rounded-lg mx-1"
+                                whileHover={{ x: 4 }}
                             >
                                 <LogOut size={16} /> Logout
-                            </button>
-                        </div>
-                    )}
+                            </motion.button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                </div>
            )}
 
-           {/* Mobile Menu Button */}
-           <button 
-                className="md:hidden text-slate-300 hover:text-white"
+           {/* Mobile Menu Button - Enhanced */}
+           <motion.button 
+                className="md:hidden text-harvest-200 hover:text-harvest-100 p-2 rounded-lg hover:bg-harvest-600/20 transition-colors"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                whileTap={{ scale: 0.9 }}
            >
-               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-           </button>
+               <motion.div
+                 animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
+                 transition={{ duration: 0.3 }}
+               >
+                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+               </motion.div>
+           </motion.button>
         </div>
       </div>
 
@@ -181,105 +288,191 @@ const Header = () => {
                 animate={{ opacity: 1, height: '100vh' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="md:hidden fixed inset-0 top-16 z-40 bg-[#688557] border-t border-white/10 flex flex-col overflow-y-auto"
+                className="md:hidden fixed inset-0 top-20 z-40 bg-white border-t-2 border-earth-200 flex flex-col overflow-y-auto shadow-2xl"
             >
-                <div className="p-6 flex flex-col gap-4">
-                    {navLinks.map((link) => {
+                {/* Header Section - Light beige with brown text */}
+                {/* <div className="bg-earth-50 border-b border-earth-200 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-earth-600 to-earth-800 rounded-lg">
+                            <Leaf className="text-harvest-200" size={24} />
+                        </div>
+                        <h2 className="text-xl font-black text-earth-900">AgriNex</h2>
+                    </div>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="p-2 hover:bg-earth-100 rounded-lg transition-colors"
+                    >
+                        <X size={24} className="text-earth-800" />
+                    </button>
+                </div> */}
+
+                <div className="p-6 flex flex-col gap-3 bg-white">
+                    {navLinks.map((link, index) => {
                         const Icon = link.icon;
                         const isActive = location.pathname === link.path;
                         return (
-                            <button
+                            <motion.button
                                 key={link.name}
                                 onClick={() => handleNav(link.path)}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ scale: 1.02, x: 4 }}
+                                whileTap={{ scale: 0.98 }}
                                 className={clsx(
-                                    "flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-200 group text-left",
+                                    "flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 group text-left relative overflow-hidden",
                                     isActive 
-                                        ? "bg-white text-[#688557] shadow-lg translate-x-2" 
-                                        : "hover:bg-white/10 text-emerald-50 hover:translate-x-1"
+                                        ? "bg-earth-100 text-earth-900 shadow-md border-2 border-earth-300" 
+                                        : "hover:bg-earth-50 text-earth-800 hover:text-earth-900 border-2 border-transparent"
                                 )}
                             >
                                 <div className={clsx(
-                                    "p-2 rounded-xl transition-colors",
-                                    isActive ? "bg-[#688557]/10" : "bg-white/5"
+                                    "p-2.5 rounded-xl transition-colors relative z-10",
+                                    isActive ? "bg-earth-200" : "bg-earth-100"
                                 )}>
-                                    <Icon size={24} />
+                                    <Icon size={22} className={isActive ? "text-earth-900" : "text-earth-700"} />
                                 </div>
-                                <div>
-                                    <span className="block text-lg font-bold">{link.name}</span>
-
+                                <div className="relative z-10">
+                                    <span className={clsx(
+                                        "block text-lg font-black",
+                                        isActive ? "text-earth-900" : "text-earth-800"
+                                    )}>{link.name}</span>
                                 </div>
                                 {isActive && (
-                                    <div className="ml-auto">
-                                        <div className="w-2 h-2 rounded-full bg-[#688557] animate-pulse" />
-                                    </div>
+                                    <motion.div 
+                                      className="ml-auto relative z-10"
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                    >
+                                        <div className="w-2.5 h-2.5 rounded-full bg-earth-700 shadow-lg" />
+                                    </motion.div>
                                 )}
-                            </button>
+                            </motion.button>
                         );
                     })}
 
                     {/* Mobile entries for Crop Layout predictions */}
-                    <button
+                    <motion.button
                       onClick={() => handleNav('/horizontal-farming')}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: navLinks.length * 0.05 }}
+                      whileHover={{ scale: 1.02, x: 4 }}
+                      whileTap={{ scale: 0.98 }}
                       className={clsx(
-                        'flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-200 group text-left',
+                        'flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 group text-left relative overflow-hidden',
                         location.pathname === '/horizontal-farming'
-                          ? 'bg-white text-[#688557] shadow-lg translate-x-2'
-                          : 'hover:bg-white/10 text-emerald-50 hover:translate-x-1'
+                          ? 'bg-earth-100 text-earth-900 shadow-md border-2 border-earth-300'
+                          : 'hover:bg-earth-50 text-earth-800 hover:text-earth-900 border-2 border-transparent'
                       )}
                     >
-                      <div className="p-2 rounded-xl bg-white/5">
-                        <Brain size={24} />
+                      <div className={clsx(
+                        "p-2.5 rounded-xl relative z-10",
+                        location.pathname === '/horizontal-farming' ? "bg-earth-200" : "bg-earth-100"
+                      )}>
+                        <Brain size={22} className={location.pathname === '/horizontal-farming' ? "text-earth-900" : "text-earth-700"} />
                       </div>
-                      <div>
-                        <span className="block text-lg font-bold">Horizontal Prediction</span>
+                      <div className="relative z-10">
+                        <span className={clsx(
+                          "block text-lg font-black",
+                          location.pathname === '/horizontal-farming' ? "text-earth-900" : "text-earth-800"
+                        )}>🌾 Horizontal Prediction</span>
                       </div>
-                    </button>
+                      {location.pathname === '/horizontal-farming' && (
+                        <motion.div 
+                          className="ml-auto relative z-10"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                        >
+                          <div className="w-2.5 h-2.5 rounded-full bg-earth-700 shadow-lg" />
+                        </motion.div>
+                      )}
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       onClick={() => handleNav('/vertical-farming')}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (navLinks.length + 1) * 0.05 }}
+                      whileHover={{ scale: 1.02, x: 4 }}
+                      whileTap={{ scale: 0.98 }}
                       className={clsx(
-                        'flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-200 group text-left',
+                        'flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 group text-left relative overflow-hidden',
                         location.pathname === '/vertical-farming'
-                          ? 'bg-white text-[#688557] shadow-lg translate-x-2'
-                          : 'hover:bg-white/10 text-emerald-50 hover:translate-x-1'
+                          ? 'bg-earth-100 text-earth-900 shadow-md border-2 border-earth-300'
+                          : 'hover:bg-earth-50 text-earth-800 hover:text-earth-900 border-2 border-transparent'
                       )}
                     >
-                      <div className="p-2 rounded-xl bg-white/5">
-                        <Brain size={24} />
+                      <div className={clsx(
+                        "p-2.5 rounded-xl relative z-10",
+                        location.pathname === '/vertical-farming' ? "bg-earth-200" : "bg-earth-100"
+                      )}>
+                        <Brain size={22} className={location.pathname === '/vertical-farming' ? "text-earth-900" : "text-earth-700"} />
                       </div>
-                      <div>
-                        <span className="block text-lg font-bold">Vertical Prediction</span>
+                      <div className="relative z-10">
+                        <span className={clsx(
+                          "block text-lg font-black",
+                          location.pathname === '/vertical-farming' ? "text-earth-900" : "text-earth-800"
+                        )}>🌱 Vertical Prediction</span>
                       </div>
-                    </button>
+                      {location.pathname === '/vertical-farming' && (
+                        <motion.div 
+                          className="ml-auto relative z-10"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                        >
+                          <div className="w-2.5 h-2.5 rounded-full bg-earth-700 shadow-lg" />
+                        </motion.div>
+                      )}
+                    </motion.button>
                     
                     {/* Divider */}
-                    <div className="h-px bg-white/10 my-2" />
+                    <motion.div 
+                      className="h-px bg-earth-200 my-3"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.3 }}
+                    />
 
                     {!user ? (
-                        <button 
+                        <motion.button 
                             onClick={() => handleNav('/register')}
-                            className="w-full py-4 rounded-2xl bg-white text-[#688557] font-bold shadow-lg hover:bg-emerald-50 transition-colors text-center text-lg"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full py-4 rounded-xl bg-gradient-to-br from-harvest-500 to-harvest-600 text-earth-900 font-black shadow-rustic hover:shadow-farm transition-all text-center text-lg border-2 border-harvest-400/50 relative overflow-hidden group"
                         >
-                            Get Started
-                        </button>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                            <span className="relative z-10">Get Started</span>
+                        </motion.button>
                     ) : (
-                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                        <motion.div 
+                          className="bg-earth-50 rounded-xl p-4 border-2 border-earth-200 shadow-md"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                        >
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-400 flex items-center justify-center text-white font-bold text-xl shadow-inner">
-                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-harvest-500 to-harvest-600 flex items-center justify-center text-earth-900 font-black text-xl shadow-rustic border-2 border-harvest-400/50 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+                                    <span className="relative z-10">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
                                 </div>
                                 <div>
-                                    <p className="font-bold text-white text-lg">{user.name}</p>
-                                    <p className="text-emerald-200/60 text-sm">{user.email}</p>
+                                    <p className="font-black text-earth-900 text-lg">{user.name}</p>
+                                    <p className="text-earth-700 text-sm font-medium">{user.email}</p>
                                 </div>
                             </div>
-                            <button 
+                            <motion.button 
                                 onClick={handleLogout}
-                                className="w-full py-3 bg-red-500/10 text-red-200 border border-red-500/20 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="w-full py-3 bg-red-100 text-red-700 border-2 border-red-300 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-red-200 transition-colors shadow-sm"
                             >
                                 <LogOut size={18} /> Sign Out
-                            </button>
-                        </div>
+                            </motion.button>
+                        </motion.div>
                     )}
                 </div>
             </motion.div>

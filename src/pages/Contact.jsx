@@ -45,10 +45,10 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center pt-20 pb-12 px-6 lg:px-12 font-sans text-slate-900">
-      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
         
         {/* Left Side: Visual & Info */}
-        <div className="space-y-8 lg:pr-8">
+        <div className="space-y-8 lg:pr-8 flex flex-col h-full">
             <div>
                 <h2 className="text-emerald-700 font-bold text-lg mb-2 flex items-center gap-2">
                     <MessageSquare size={20}/> Get in Touch
@@ -62,11 +62,11 @@ const Contact = () => {
             </div>
 
             {/* Visual Image (Reusing the generated hero image for consistency with the design language) */}
-            <div className="relative">
+            <div className="relative flex-1">
                  <img 
-                    src="/vertical-farm-hero.png" 
+                    src="/agrinex photo.jpeg" 
                     alt="Contact Support" 
-                    className="w-full h-auto drop-shadow-xl"
+                    className="w-full h-auto drop-shadow-xl rounded-2xl"
                 />
             </div>
 
@@ -88,7 +88,7 @@ const Contact = () => {
         </div>
 
         {/* Right Side: Contact Form Card */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 shadow-2xl border border-slate-100 relative space-y-10">
+        <div className="bg-white rounded-3xl p-8 lg:p-10 shadow-2xl border border-slate-100 relative space-y-10 flex flex-col h-full">
             <h2 className="text-3xl font-bold text-slate-800 mb-2">Send Message</h2>
             <p className="text-slate-500 mb-8">Fill out the form below and we'll get back to you shortly.</p>
             
@@ -218,8 +218,16 @@ const Contact = () => {
             </div>
             
             <div className="mt-6 text-center pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 mb-4">
                     By contacting us, you agree to our <span className="text-emerald-700 font-medium cursor-pointer">Terms of Service</span> and <span className="text-emerald-700 font-medium cursor-pointer">Privacy Policy</span>.
+                </p>
+                <img 
+                    src="/team.jpeg" 
+                    alt="Our Team" 
+                    className="w-full h-auto drop-shadow-xl rounded-2xl mb-4"
+                />
+                <p className="text-sm font-semibold text-slate-700">
+                     Voices from the Fields, Powered by Innovation
                 </p>
             </div>
         </div>

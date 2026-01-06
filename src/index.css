@@ -4,33 +4,224 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    @apply font-sans antialiased;
+    color: #5d4030; /* earth-900 - dark brown for good contrast */
+    background: linear-gradient(to bottom right, #F5E6D3, #E6D5B8, #F5E6D3);
+    background-attachment: fixed;
+    position: relative;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 111, 71, 0.02) 2px, rgba(139, 111, 71, 0.02) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(107, 78, 61, 0.02) 2px, rgba(107, 78, 61, 0.02) 4px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  *::selection {
+    background-color: rgba(212, 165, 116, 0.4); /* wheat/50 */
+    color: #6B4E3D; /* dirt */
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
+    @apply bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl;
+  }
+
+  .glass-farm {
+    background-color: rgba(240, 253, 244, 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(187, 247, 208, 0.5); /* border-forest-200/50 */
+    box-shadow: 0 10px 40px -10px rgba(34, 197, 94, 0.3); /* shadow-farm */
   }
 
   .tech-border {
-    @apply border border-emerald-500/30;
+    @apply border border-forest-400/30;
   }
 
   .text-gradient-farm {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, #6B4E3D, #8B6F47, #A0826D); /* dirt to soil to wood */
+  }
+  
+  .text-gradient-harvest {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, #D4A574, #F4A460, #FFC107); /* wheat to corn to gold */
+  }
+  
+  .text-gradient-earth {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, #8a5f3f, #a6754a, #b88a5a); /* earth tones */
+  }
+
+  .card-farm {
+    background: linear-gradient(135deg, #F5E6D3 0%, #E6D5B8 100%); /* cream to straw */
+    border-radius: 0.75rem; /* rounded-xl - less rounded for rustic feel */
+    box-shadow: 0 4px 20px -4px rgba(139, 111, 71, 0.4), 0 2px 8px rgba(107, 78, 61, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(139, 111, 71, 0.3); /* soil color border */
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-farm::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 111, 71, 0.05) 2px, rgba(139, 111, 71, 0.05) 4px);
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  
+  .card-farm:hover {
+    box-shadow: 0 8px 30px -6px rgba(139, 111, 71, 0.5), 0 4px 12px rgba(107, 78, 61, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .card-farm-elevated {
+    background: linear-gradient(135deg, #F5E6D3 0%, #E6D5B8 100%);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px -4px rgba(139, 111, 71, 0.4), 0 2px 8px rgba(107, 78, 61, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(139, 111, 71, 0.3);
+    transition: all 0.3s, transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-farm-elevated::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 111, 71, 0.05) 2px, rgba(139, 111, 71, 0.05) 4px);
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  
+  .card-farm-elevated:hover {
+    box-shadow: 0 8px 30px -6px rgba(139, 111, 71, 0.5), 0 4px 12px rgba(107, 78, 61, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  .btn-farm-primary {
+    background: linear-gradient(135deg, #8B6F47 0%, #A0826D 50%, #D4A574 100%); /* soil to wood to wheat */
+    color: #F5E6D3; /* cream text */
+    font-weight: 700;
+    border-radius: 0.5rem; /* rounded-lg - less rounded */
+    box-shadow: 0 4px 12px rgba(107, 78, 61, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(107, 78, 61, 0.3);
+    transition: all 0.3s, transform 0.2s;
+    transform: scale(1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-farm-primary:hover {
+    box-shadow: 0 6px 16px rgba(107, 78, 61, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px) scale(1.02);
+    background: linear-gradient(135deg, #A0826D 0%, #C9A373 50%, #E6D5B8 100%);
+  }
+  
+  .btn-farm-primary:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 6px rgba(107, 78, 61, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-farm-secondary {
+    background: linear-gradient(135deg, #F5E6D3 0%, #E6D5B8 100%);
+    color: #6B4E3D; /* dirt */
+    font-weight: 700;
+    border-radius: 0.5rem;
+    border: 2px solid rgba(139, 111, 71, 0.4);
+    box-shadow: 0 2px 8px rgba(107, 78, 61, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s, transform 0.2s;
+  }
+  
+  .btn-farm-secondary:hover {
+    background: linear-gradient(135deg, #E6D5B8 0%, #D4A574 100%);
+    box-shadow: 0 4px 12px rgba(107, 78, 61, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .pattern-dots {
+    background-image: radial-gradient(circle, rgba(34, 197, 94, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .pattern-grid {
+    background-image: 
+      linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  .pattern-organic {
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 111, 71, 0.03) 2px, rgba(139, 111, 71, 0.03) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(107, 78, 61, 0.03) 2px, rgba(107, 78, 61, 0.03) 4px);
+  }
+  
+  .texture-wood {
+    background-image: 
+      repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(139, 111, 71, 0.1) 1px, rgba(139, 111, 71, 0.1) 2px),
+      linear-gradient(180deg, rgba(160, 130, 109, 0.1) 0%, transparent 50%);
+  }
+  
+  .texture-burlap {
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(139, 111, 71, 0.15) 1px, transparent 0),
+      radial-gradient(circle at 2px 2px, rgba(107, 78, 61, 0.08) 1px, transparent 0);
+    background-size: 4px 4px, 8px 8px;
   }
 }
 
-/* Custom scrollbar for premium feel */
+/* Custom scrollbar with farmer theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100;
+  background-color: rgba(230, 213, 184, 0.5); /* straw */
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-emerald-200/50 rounded-full hover:bg-emerald-300/80 transition-colors;
+  background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%); /* soil to wood */
+  border-radius: 4px;
+  border: 1px solid rgba(107, 78, 61, 0.3);
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #A0826D 0%, #C9A373 100%); /* lighter wood */
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus styles - Rustic theme */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.6), 0 0 0 4px rgba(245, 230, 211, 1); /* wheat ring with cream offset */
 }

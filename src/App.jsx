@@ -32,9 +32,13 @@ const PrivateRoute = ({ children }) => {
 
 const MainLayout = ({ children }) => {
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-emerald-500/30 selection:text-emerald-900">
-            <Header />
-            {children}
+        <div className="min-h-screen text-amber-900 relative" style={{ background: 'linear-gradient(to bottom right, #F5E6D3, #E6D5B8, #F5E6D3)' }}>
+            {/* Rustic texture pattern */}
+            <div className="fixed inset-0 pattern-organic opacity-30 pointer-events-none -z-0" />
+            <div className="relative z-10">
+                <Header />
+                {children}
+            </div>
         </div>
     );
 };
