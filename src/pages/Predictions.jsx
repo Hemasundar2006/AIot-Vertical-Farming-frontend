@@ -180,28 +180,29 @@ const MLPredictions = () => {
                 throw new Error("Temperature must be one of: 18, 20, 22, 25, 28, 30, 32, 35");
             }
             
+            // Params used for logging / display; backend expects only the fields in the sample URL
             const predictionParams = {
                 crop: waterCrop,
                 soil: waterSoil,
                 month: waterMonth,
                 season: waterSeason,
-                year: waterYear, // send as string to match dropdown choices
                 temperature: String(waterTemperature),
             };
             
             console.log("Sending water prediction request:", predictionParams);
             setWaterPredictionStatus('Sending prediction request...');
             
-            // Build query parameters - year comes from dropdown (currently only "2025")
+            // Build query parameters to match backend:
+            // https://aiot-vertical-farming-backend.onrender.com/api/crop/predict-water?crop=...&soil=...&month=...&season=...&temperature=...
             const params = new URLSearchParams({
                 crop: waterCrop,
                 soil: waterSoil,
                 month: waterMonth,
                 season: waterSeason,
-                year: waterYear,
                 temperature: String(waterTemperature),
             });
             
+            // Endpoint kept in sync with backend route
             const apiUrl = `${API_BASE_URL}/api/crop/predict-water?${params}`;
             console.log("API URL:", apiUrl);
             
