@@ -24,7 +24,7 @@ const Header = () => {
   const navLinks = [
       { name: 'Home', path: '/', icon: Home, showAlways: true },
       { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, showAlways: true },
-      { name: 'Image Detection', path: '/image-detection', icon: Camera, showAlways: true },
+      // { name: 'Image Detection', path: '/image-detection', icon: Camera, showAlways: true },
       { name: 'AI Chatbot', path: '/chatbot', icon: MessageSquare, showAlways: true },
       { name: 'ML Predictions', path: '/predictions', icon: Brain, showAlways: true },
       { name: 'Contact', path: '/contact', icon: Phone, showAlways: true },
