@@ -47,15 +47,15 @@ const Header = () => {
           whileTap={{ scale: 0.98 }}
         >
             <div className="relative bg-gradient-to-br from-earth-600 to-earth-800 p-2.5 rounded-xl shadow-rustic group-hover:shadow-farm transition-all duration-300 group-hover:scale-110 border-2 border-earth-500/40 overflow-hidden">
-                <Leaf className="text-harvest-200 relative z-10" size={28} />
+                <Leaf className="text-white relative z-10" size={28} />
                 <div className="absolute inset-0 bg-harvest-500/20 rounded-xl group-hover:bg-harvest-500/30 transition-colors" />
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div>
-            <h1 className="text-2xl font-black text-harvest-100 tracking-tight group-hover:text-harvest-50 transition-colors">
-                <span className="text-harvest-300 group-hover:text-harvest-200 transition-colors">Agri</span><span className="text-harvest-100">Nex</span>
+            <h1 className="text-2xl font-black text-brown-500 tracking-tight group-hover:text-brown-500 transition-colors">
+                <span className="text-brown-500 group-hover:text-brown-500 transition-colors">Agri</span><span className="text-brown-500">Nex</span>
             </h1>
-            <p className="text-[9px] text-harvest-200/70 font-bold uppercase tracking-widest -mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Smart Farm</p>
+            <p className="text-[9px] text-white/80 font-bold uppercase tracking-widest -mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">Smart Farm</p>
             </div>
         </motion.div>
 
@@ -73,8 +73,8 @@ const Header = () => {
                 className={clsx(
                   'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative overflow-hidden',
                   isActive 
-                    ? 'bg-harvest-500/40 text-harvest-50 shadow-farm border-2 border-harvest-400/50' 
-                    : 'text-harvest-200/90 hover:text-harvest-100 hover:bg-harvest-600/25 hover:border-harvest-500/40 border-2 border-transparent'
+                    ? 'bg-white/20 text-black shadow-farm border-2 border-white/30' 
+                    : 'text-black/90 hover:text-black hover:bg-white/10 hover:border-white/20 border-2 border-transparent'
                 )}
               >
                 <div className={clsx(
@@ -85,7 +85,7 @@ const Header = () => {
                 <span className="relative z-10">{link.name}</span>
                 {isActive && (
                   <motion.div 
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-harvest-300"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
                     layoutId="activeTab"
                     initial={false}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -104,15 +104,15 @@ const Header = () => {
               className={clsx(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative overflow-hidden',
                 location.pathname === '/horizontal-farming' || location.pathname === '/vertical-farming'
-                  ? 'bg-harvest-500/40 text-harvest-50 shadow-farm border-2 border-harvest-400/50'
-                  : 'text-harvest-200/90 hover:text-harvest-100 hover:bg-harvest-600/25 hover:border-harvest-500/40 border-2 border-transparent'
+                  ? 'bg-white/20 text-white shadow-farm border-2 border-white/30'
+                  : 'text-black/90 hover:text-black hover:bg-white/10 hover:border-white/20 border-2 border-transparent'
               )}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-harvest-500/20 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
               <Brain size={18} className="relative z-10" />
               <span className="relative z-10">Crop Layout</span>
               <motion.span 
-                className="text-xs relative z-10"
+                className="text-xs relative z-10 text-black"
                 animate={{ rotate: showPredictionMenu ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
               >
@@ -184,22 +184,22 @@ const Header = () => {
         {/* Right Side Actions - Enhanced */}
         <div className="flex items-center gap-2 sm:gap-3">
            {/* System Status Indicator - Enhanced */}
-           <motion.div 
-             className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-harvest-600/25 backdrop-blur-sm border-2 border-harvest-500/40 shadow-rustic"
-             whileHover={{ scale: 1.05 }}
-           >
-               <motion.div 
-                 className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-harvest-400' : 'bg-red-500'}`}
-                 animate={isConnected ? { 
-                   scale: [1, 1.2, 1],
-                   opacity: [1, 0.7, 1]
-                 } : {}}
-                 transition={{ duration: 2, repeat: Infinity }}
-               />
-               <span className="text-xs font-black text-harvest-100">
-                 {isConnected ? 'Live' : 'Offline'}
-               </span>
-           </motion.div>
+            <motion.div 
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border-2 border-white/20 shadow-rustic"
+              whileHover={{ scale: 1.05 }}
+            >
+                <motion.div 
+                  className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-500'}`}
+                  animate={isConnected ? { 
+                    scale: [1, 1.2, 1],
+                    opacity: [1, 0.7, 1]
+                  } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <span className="text-xs font-black text-white">
+                  {isConnected ? 'Live' : 'Offline'}
+                </span>
+            </motion.div>
 
            {/* Desktop Auth Buttons - Enhanced */}
            {!user && (
@@ -208,7 +208,7 @@ const Header = () => {
                        onClick={() => handleNav('/register')}
                        whileHover={{ scale: 1.05, y: -1 }}
                        whileTap={{ scale: 0.95 }}
-                       className="bg-gradient-to-br from-harvest-500 to-harvest-600 text-earth-900 px-6 py-2.5 rounded-xl text-sm font-black shadow-rustic hover:shadow-farm transition-all border-2 border-harvest-400/50 relative overflow-hidden group"
+                       className="bg-white text-earth-900 px-6 py-2.5 rounded-xl text-sm font-black shadow-md hover:shadow-lg transition-all border-2 border-white/30 relative overflow-hidden group"
                    >
                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                        <span className="relative z-10">Get Started</span>
@@ -224,7 +224,7 @@ const Header = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                     >
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-harvest-500 to-harvest-600 border-2 border-harvest-300/50 flex items-center justify-center text-sm font-black text-earth-900 shadow-rustic group-hover:shadow-farm transition-all relative overflow-hidden">
+                        <div className="h-10 w-10 rounded-xl bg-white border-2 border-white/30 flex items-center justify-center text-sm font-black text-earth-900 shadow-md group-hover:shadow-lg transition-all relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <span className="relative z-10">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
                         </div>
@@ -264,11 +264,11 @@ const Header = () => {
            )}
 
            {/* Mobile Menu Button - Enhanced */}
-           <motion.button 
-                className="md:hidden text-harvest-200 hover:text-harvest-100 p-2 rounded-lg hover:bg-harvest-600/20 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                whileTap={{ scale: 0.9 }}
-           >
+            <motion.button 
+                 className="md:hidden text-white hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                 whileTap={{ scale: 0.9 }}
+            >
                <motion.div
                  animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
                  transition={{ duration: 0.3 }}
