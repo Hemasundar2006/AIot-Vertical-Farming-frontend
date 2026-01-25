@@ -64,9 +64,9 @@ const MLPredictions = () => {
     const [isPredictingWater, setIsPredictingWater] = useState(false);
     
     // Options from backend
-    const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Zaid"]);
+    const [seasons, setSeasons] = useState(["Kharif", "Rabi", "Summer"]);
     const [months, setMonths] = useState(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]);
-    const [soilTypes, setSoilTypes] = useState(["Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky"]);
+    const [soilTypes, setSoilTypes] = useState(["Clay", "Sandy", "Loamy", "Silty"]);
     const [yearRange, setYearRange] = useState({ min: 2020, max: 2030 });
     const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
@@ -80,6 +80,10 @@ const MLPredictions = () => {
                     throw new Error('Failed to fetch options');
                 }
                 const data = await response.json();
+                
+                console.log("=== BACKEND OPTIONS RECEIVED ===");
+                console.log("Full options data:", data);
+                console.log("Soil types from backend:", data.soil_types);
                 
                 if (data.seasons) setSeasons(data.seasons);
                 if (data.months) setMonths(data.months);
@@ -101,6 +105,7 @@ const MLPredictions = () => {
                 }
                 if (data.soil_types && data.soil_types.length > 0) {
                     setSoilType(data.soil_types[0]);
+                    console.log("Default soil type set to:", data.soil_types[0]);
                 }
             } catch (error) {
                 console.error('Error fetching options:', error);
@@ -119,24 +124,39 @@ const MLPredictions = () => {
         setPredictedCrop(null);
         
         try {
-            console.log("Calling API with parameters:", { year, season, month, soil_type: soilType });
+            const requestBody = {
+                year: year,
+                season: season,
+                month: month,
+                soil_type: soilType,
+            };
+            
+            console.log("=== CROP PREDICTION REQUEST ===");
+            console.log("Request Body:", requestBody);
+            console.log("Soil Type Value:", soilType);
+            console.log("Soil Type Type:", typeof soilType);
+            console.log("Available Soil Types:", soilTypes);
+            console.log("Full request URL:", `${API_BASE_URL}/api/crop/predict`);
+            console.log("Request as JSON:", JSON.stringify(requestBody));
             
             const response = await fetch(`${API_BASE_URL}/api/crop/predict`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    year: year,
-                    season: season,
-                    month: month,
-                    soil_type: soilType,
-                }),
+                body: JSON.stringify(requestBody),
             });
+
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                console.error("Full error response:", errorData);
+                
+                // Show detailed error message
+                const errorMsg = errorData.error || errorData.message || errorData.detail || `HTTP ${response.status} error`;
+                throw new Error(errorMsg);
             }
 
             const data = await response.json();
@@ -178,7 +198,6 @@ const MLPredictions = () => {
                 month: waterMonth,
                 season: waterSeason,
                 temperature: waterTemperature,
-                // year is handled by backend internally
             };
             
             console.log("Sending water prediction request:", formData);
@@ -200,7 +219,6 @@ const MLPredictions = () => {
             const data = await response.json();
             console.log("Water Prediction Response:", data);
             
-            // data.prediction already contains: "💧 Water Required: X Liters / Month"
             if (data.prediction) {
                 setWaterPrediction({
                     prediction: data.prediction,

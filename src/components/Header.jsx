@@ -29,7 +29,7 @@ const Header = () => {
       { name: 'ML Predictions', path: '/predictions', icon: Brain, showAlways: true },
       { name: 'Contact', path: '/contact', icon: Phone, showAlways: true },
   ];
-
+  
   const handleNav = (path) => {
       navigate(path);
       setIsMobileMenuOpen(false);
