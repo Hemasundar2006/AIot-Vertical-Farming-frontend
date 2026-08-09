@@ -20,9 +20,9 @@ const THRESHOLDS = {
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
-    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
-    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } },
-    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, pumpInfo: { status: false } }
+    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
+    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
+    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } }
   });
   const [lastUpdated, setLastUpdated] = useState('');
   const [history, setHistory] = useState([]);
@@ -54,6 +54,25 @@ export const FarmProvider = ({ children }) => {
     return () => newSocket.close();
   }, []);
 
+  const resetLayersToOffline = () => {
+    setLayers(prev => {
+      const resetState = { ...prev };
+      Object.keys(resetState).forEach(key => {
+        resetState[key] = {
+          ...resetState[key],
+          temperature: 0,
+          humidity: 0,
+          moisture: 0,
+          gas: 0,
+          light: 0,
+          motor: 'OFF',
+          pumpInfo: { status: false }
+        };
+      });
+      return resetState;
+    });
+  };
+
   // Polling Data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -62,20 +81,32 @@ export const FarmProvider = ({ children }) => {
         const data = response.data;
         
         if (data) {
-          setIsConnected(true);
           setIsDemoMode(false);
-          updateLayersFromApi(data);
+          let isFresh = true;
           if (data.timestamp) {
-              // Convert ISO timestamp to readable format
               const timestamp = new Date(data.timestamp);
               setLastUpdated(timestamp.toLocaleString());
+              // Check if timestamp is fresh (within 90 seconds)
+              isFresh = (new Date() - timestamp) < 90000;
           }
+
+          setIsConnected(isFresh);
+
+          if (isFresh) {
+            updateLayersFromApi(data);
+          } else {
+            resetLayersToOffline();
+          }
+        } else {
+          setIsConnected(false);
+          setIsDemoMode(false);
+          resetLayersToOffline();
         }
       } catch (error) {
         console.error("Error fetching farm data:", error);
-        if (!isConnected) {
-             setIsDemoMode(true); 
-        }
+        setIsConnected(false);
+        setIsDemoMode(false);
+        resetLayersToOffline();
       }
     };
 
@@ -89,86 +120,75 @@ export const FarmProvider = ({ children }) => {
   }, []);
 
   const updateLayersFromApi = (apiData) => {
+    if (!apiData) return;
+
+    let zonesList = [];
+    const root = apiData.data || apiData;
+
+    if (Array.isArray(root)) {
+      zonesList = root;
+    } else if (Array.isArray(root.zones)) {
+      zonesList = root.zones;
+    } else if (root.id !== undefined) {
+      zonesList = [root];
+    } else if (typeof root === 'object') {
+      ['zone1', 'zone2', 'zone3', 'z1', 'z2', 'z3', '1', '2', '3'].forEach((k) => {
+        if (root[k] && typeof root[k] === 'object') {
+          const numId = Number(k.replace(/\D/g, '')) || (k === 'zone1' || k === 'z1' ? 1 : k === 'zone2' || k === 'z2' ? 2 : 3);
+          zonesList.push({ id: numId, ...root[k] });
+        }
+      });
+    }
+
     setLayers(prev => {
         const newLayers = { ...prev };
         
-        // New API structure: { zones: [{ id, soil, temperature, humidity, gas, light }, ...], timestamp }
-        if (apiData.zones && Array.isArray(apiData.zones)) {
-            // Process zones array
-            apiData.zones.forEach(zone => {
-                const zoneId = zone.id;
-                let layerKey = null;
-                
-                // Map zone id to layer key
-                if (zoneId === 1) layerKey = 'layer1';
-                else if (zoneId === 2) layerKey = 'layer2';
-                else if (zoneId === 3) layerKey = 'layer3';
-                
-                if (layerKey && newLayers[layerKey]) {
-                    newLayers[layerKey] = {
-                        ...newLayers[layerKey],
-                        temperature: zone.temperature !== undefined ? zone.temperature : newLayers[layerKey].temperature,
-                        humidity: zone.humidity !== undefined ? zone.humidity : newLayers[layerKey].humidity,
-                        moisture: zone.soil !== undefined ? zone.soil : newLayers[layerKey].moisture,
-                        gas: zone.gas !== undefined ? zone.gas : newLayers[layerKey].gas,
-                        light: zone.light !== undefined ? zone.light : newLayers[layerKey].light,
-                        // Note: motor/pump status is not included in GET response
-                        // pumpInfo status remains unchanged (controlled separately)
-                    };
-                }
-            });
-        } else {
-            // Fallback: Handle old structure (zone1, zone2, zone3) for backward compatibility
-            const mapZone = (zoneData, existingLayer) => {
-                if (!zoneData) return existingLayer;
-                return {
-                    ...existingLayer,
-                    temperature: zoneData.temp !== undefined ? zoneData.temp : (zoneData.temperature !== undefined ? zoneData.temperature : existingLayer.temperature),
-                    humidity: zoneData.hum !== undefined ? zoneData.hum : (zoneData.humidity !== undefined ? zoneData.humidity : existingLayer.humidity),
-                    moisture: zoneData.soil !== undefined ? zoneData.soil : existingLayer.moisture,
-                    gas: zoneData.gas !== undefined ? zoneData.gas : existingLayer.gas,
-                    light: zoneData.light !== undefined ? zoneData.light : existingLayer.light,
-                };
-            };
+        zonesList.forEach(zone => {
+            if (!zone || typeof zone !== 'object') return;
 
-            newLayers.layer1 = mapZone(apiData.zone1, newLayers.layer1);
-            newLayers.layer2 = mapZone(apiData.zone2, newLayers.layer2);
-            newLayers.layer3 = mapZone(apiData.zone3, newLayers.layer3);
-        }
+            const zoneId = Number(zone.id || zone.zoneId || (zone.zone ? String(zone.zone).replace(/\D/g, '') : null));
+            let layerKey = null;
+            
+            // Map zone id to layer key
+            if (zoneId === 1) layerKey = 'layer1';
+            else if (zoneId === 2) layerKey = 'layer2';
+            else if (zoneId === 3) layerKey = 'layer3';
+            
+            if (layerKey && newLayers[layerKey]) {
+                const rawMotor = zone.motor !== undefined ? zone.motor : (zone.relay !== undefined ? zone.relay : zone.motor_status);
+                let motorState = newLayers[layerKey].motor || 'OFF';
+
+                if (rawMotor !== undefined && rawMotor !== null) {
+                  const strVal = String(rawMotor).trim().toUpperCase();
+                  if (strVal === 'ON' || strVal === 'TRUE' || rawMotor === true || rawMotor === 1) {
+                    motorState = 'ON';
+                  } else {
+                    motorState = 'OFF';
+                  }
+                }
+
+                const isMotorOn = motorState === 'ON';
+
+                newLayers[layerKey] = {
+                    ...newLayers[layerKey],
+                    temperature: zone.temperature !== undefined ? zone.temperature : (zone.temp !== undefined ? zone.temp : newLayers[layerKey].temperature),
+                    humidity: zone.humidity !== undefined ? zone.humidity : (zone.hum !== undefined ? zone.hum : newLayers[layerKey].humidity),
+                    moisture: zone.soil !== undefined ? zone.soil : (zone.moisture !== undefined ? zone.moisture : newLayers[layerKey].moisture),
+                    gas: zone.gas !== undefined ? zone.gas : newLayers[layerKey].gas,
+                    light: zone.light !== undefined ? zone.light : newLayers[layerKey].light,
+                    motor: motorState,
+                    pumpInfo: {
+                      ...newLayers[layerKey].pumpInfo,
+                      status: isMotorOn
+                    }
+                };
+            }
+        });
 
         checkAlerts(newLayers);
         return newLayers;
     });
   };
-
-  // Demo Mode Simulation (Fallback)
-  useEffect(() => {
-    if (!isDemoMode) return;
-
-    const interval = setInterval(() => {
-      setLayers(prev => {
-        const nextState = { ...prev };
-        
-        Object.keys(nextState).forEach(key => {
-          const layer = nextState[key];
-          // Random fluctuations around a "healthy" mean
-          const tempChange = (Math.random() - 0.5) * 0.5;
-          const humChange = (Math.random() - 0.5) * 1;
-          const moistChange = layer.pumpInfo.status ? 1.5 : -0.2;
-
-          layer.temperature = Math.max(18, Math.min(35, parseFloat((layer.temperature || 24 + tempChange).toFixed(1))));
-          layer.humidity = Math.max(40, Math.min(90, parseFloat((layer.humidity || 60 + humChange).toFixed(1))));
-          layer.moisture = Math.max(0, Math.min(100, parseFloat((layer.moisture || 50 + moistChange).toFixed(1))));
-          layer.gas = 4095; // Default from example
-          layer.light = 0;
-        });
-
-        return nextState;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [isDemoMode]);
 
   const checkAlerts = (currentLayers) => {
     Object.keys(currentLayers).forEach(key => {
@@ -186,17 +206,19 @@ export const FarmProvider = ({ children }) => {
 
     const currentStatus = layers[layerKey].pumpInfo.status;
     const newStatus = !currentStatus;
+    const newMotorState = newStatus ? 'ON' : 'OFF';
 
     // Optimistic update
     setLayers(prev => ({
       ...prev,
       [layerKey]: {
         ...prev[layerKey],
+        motor: newMotorState,
         pumpInfo: { ...prev[layerKey].pumpInfo, status: newStatus }
       }
     }));
     
-    toast.success(`Pump command sent: ${newStatus ? 'ON' : 'OFF'}`);
+    toast.success(`Motor command sent for ${layers[layerKey].name}: ${newMotorState}`);
   };
 
   return (

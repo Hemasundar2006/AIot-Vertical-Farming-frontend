@@ -3,17 +3,20 @@ import { useFarm } from '../context/FarmContext';
 import { Power } from 'lucide-react';
 
 const ControlCard = ({ layer, onToggle }) => {
-  const isActive = layer.pumpInfo.status;
+  const isActive = layer.motor === 'ON' || layer.pumpInfo?.status;
+  const motorStatus = layer.motor || (isActive ? 'ON' : 'OFF');
 
   return (
     <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
       <div className="flex items-center gap-3">
-        <div className={`p-3 rounded-full transition-colors ${isActive ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-700 text-slate-400'}`}>
+        <div className={`p-3 rounded-full transition-colors ${isActive ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-700 text-slate-400'}`}>
           <Power size={20} />
         </div>
         <div>
-          <h4 className="font-medium text-white">{layer.name} Pump</h4>
-          <p className="text-xs text-slate-400">{isActive ? 'Running' : 'Stopped'}</p>
+          <h4 className="font-medium text-white">{layer.name} Motor</h4>
+          <p className="text-xs text-slate-400">
+            Motor Status: <span className={`font-bold ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>{motorStatus}</span> ({isActive ? 'Running' : 'Stopped'})
+          </p>
         </div>
       </div>
       

@@ -72,9 +72,17 @@ const Dashboard = () => {
 
     // Zone/Layer Card Component
     const ZoneCard = ({ zone }) => {
-        const isPumpOn = zone.pumpInfo.status;
+        const isPumpOn = isConnected && zone.pumpInfo.status;
+        const motorStatus = isConnected ? (zone.motor || (isPumpOn ? 'ON' : 'OFF')) : 'OFF';
+        const isMotorActive = isConnected && motorStatus === 'ON';
         const zoneKey = getZoneKey(zone);
         
+        const tempDisplay = isConnected ? `${zone.temperature}°C` : '--';
+        const humDisplay = isConnected ? `${zone.humidity}%` : '--';
+        const soilDisplay = isConnected ? `${zone.moisture}` : '--';
+        const gasDisplay = isConnected ? `${zone.gas}` : '--';
+        const lightDisplay = isConnected ? `${zone.light} Lx` : '-- Lx';
+
         const handleZoneClick = (e) => {
             // Don't trigger if clicking on the pump button or its container
             if (e.target.closest('button') || e.target.closest('[role="button"]')) {
@@ -108,37 +116,51 @@ const Dashboard = () => {
                                     <h3 className="text-xl font-bold text-slate-800">{zone.name}</h3>
                                     <BarChart3 size={16} className="text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
-                                    ID: {zone.id} • {isConnected ? 'Live' : 'Connecting...'}
+                                <p className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-slate-400">ID: {zone.id}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span className={isConnected ? "text-emerald-600 font-bold" : "text-amber-500 font-bold"}>
+                                        {isConnected ? 'Live' : 'ESP32 Offline'}
+                                    </span>
                                 </p>
                                 <p className="text-xs text-emerald-600 font-medium mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     Click to view graphs →
                                 </p>
                             </div>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide border ${isPumpOn ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-                            PUMP {isPumpOn ? 'ACTIVE' : 'IDLE'}
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide border flex items-center gap-1.5 ${
+                            isMotorActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'
+                        }`}>
+                            <div className={`w-2 h-2 rounded-full ${isMotorActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                            MOTOR {motorStatus}
                         </div>
                     </div>
 
                     {/* Sensor Grid */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                         <SensorBadge icon={Thermometer} label="Temp" value={`${zone.temperature}°C`} color="text-orange-500" bg="bg-orange-50" />
-                         <SensorBadge icon={Droplets} label="Humidity" value={`${zone.humidity}%`} color="text-blue-500" bg="bg-blue-50" />
-                         <SensorBadge icon={Gauge} label="Soil" value={`${zone.moisture}`} color="text-emerald-600" bg="bg-emerald-50" />
-                         <SensorBadge icon={Wind} label="Gas" value={`${zone.gas}`} color="text-purple-500" bg="bg-purple-50" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
+                         <SensorBadge icon={Thermometer} label="Temp" value={tempDisplay} color="text-orange-500" bg="bg-orange-50" />
+                         <SensorBadge icon={Droplets} label="Humidity" value={humDisplay} color="text-blue-500" bg="bg-blue-50" />
+                         <SensorBadge icon={Gauge} label="Soil" value={soilDisplay} color="text-emerald-600" bg="bg-emerald-50" />
+                         <SensorBadge icon={Wind} label="Gas" value={gasDisplay} color="text-purple-500" bg="bg-purple-50" />
+                         <SensorBadge 
+                            icon={Zap} 
+                            label="Motor" 
+                            value={motorStatus} 
+                            color={isMotorActive ? "text-emerald-600" : "text-slate-400"} 
+                            bg={isMotorActive ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-slate-200"} 
+                         />
                     </div>
                     
                     {/* Light Level Bar */}
                     <div className="mb-6">
                          <div className="flex justify-between items-center mb-2">
                              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1"><Sun size={12}/> Light Intensity</span>
-                             <span className="text-xs font-bold text-amber-500">{zone.light} Lx</span>
+                             <span className="text-xs font-bold text-amber-500">{lightDisplay}</span>
                          </div>
                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                              <div 
                                 className="h-full bg-gradient-to-r from-amber-300 to-amber-500 rounded-full transition-all duration-1000"
-                                style={{ width: `${Math.min(100, (zone.light / 1000) * 100)}%` }} 
+                                style={{ width: isConnected ? `${Math.min(100, (zone.light / 1000) * 100)}%` : '0%' }} 
                              />
                          </div>
                     </div>
@@ -146,7 +168,9 @@ const Dashboard = () => {
                     {/* Controls */}
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div className="text-xs text-slate-400">
-                            Status: <span className="text-slate-600 font-semibold">{isPumpOn ? 'Watering...' : 'Monitoring'}</span>
+                            Motor Status: <span className={isMotorActive ? "text-emerald-600 font-bold" : "text-slate-600 font-semibold"}>
+                                {motorStatus} ({!isConnected ? 'Offline' : isMotorActive ? 'Watering...' : 'Idle'})
+                            </span>
                         </div>
                         <button
                             onClick={(e) => {
@@ -154,13 +178,13 @@ const Dashboard = () => {
                                 togglePump(zone.id);
                             }}
                             className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2 ${
-                                isPumpOn 
+                                isMotorActive 
                                     ? 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-200' 
                                     : 'bg-emerald-600 text-emerald-50 hover:bg-emerald-700 hover:shadow-emerald-200'
                             }`}
                         >
-                            <Zap size={14} className={isPumpOn ? "" : "fill-current"} />
-                            {isPumpOn ? 'Stop Pump' : 'Start Pump'}
+                            <Zap size={14} className={isMotorActive ? "" : "fill-current"} />
+                            {isMotorActive ? 'Stop Motor' : 'Start Motor'}
                         </button>
                     </div>
                 </div>
