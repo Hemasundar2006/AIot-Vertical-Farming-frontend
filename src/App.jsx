@@ -20,6 +20,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import SensorData from './pages/SensorData';
 import ImageDetection from './pages/ImageDetection';
+import ZoneControl from './pages/ZoneControl';
 
 // ... (other imports remain, but reusing existing block structure to minimize diff)
 
@@ -85,6 +86,7 @@ function App() {
                 <Route path="/image-detection" element={<MainLayout><ImageDetection /></MainLayout>} />
                 <Route path="/chatbot" element={<MainLayout><ChatBot /></MainLayout>} />
                 <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
+                <Route path="/zone-control" element={<PrivateRoute><MainLayout><ZoneControl /></MainLayout></PrivateRoute>} />
             </Routes>
 
             <Toaster 

@@ -28,6 +28,9 @@ export const FarmProvider = ({ children }) => {
   const [history, setHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  
+  // Keep track of manual overrides to prevent them from being immediately overwritten by polling
+  const manualOverrides = useRef({});
 
   // Ref to keep track of previous values for alerts to avoid spamming
   const prevLayerState = useRef(layers);
@@ -182,6 +185,20 @@ export const FarmProvider = ({ children }) => {
                       status: isMotorOn
                     }
                 };
+
+                // Apply any manual overrides if they exist for this zone
+                if (manualOverrides.current[zoneId]) {
+                    const override = manualOverrides.current[zoneId];
+                    newLayers[layerKey] = {
+                        ...newLayers[layerKey],
+                        motor: override.motor,
+                        moisture: override.moisture,
+                        pumpInfo: {
+                            ...newLayers[layerKey].pumpInfo,
+                            status: override.pumpInfo.status
+                        }
+                    };
+                }
             }
         });
 
@@ -206,23 +223,52 @@ export const FarmProvider = ({ children }) => {
 
     const currentStatus = layers[layerKey].pumpInfo.status;
     const newStatus = !currentStatus;
-    const newMotorState = newStatus ? 'ON' : 'OFF';
-
-    // Optimistic update
-    setLayers(prev => ({
-      ...prev,
-      [layerKey]: {
-        ...prev[layerKey],
-        motor: newMotorState,
-        pumpInfo: { ...prev[layerKey].pumpInfo, status: newStatus }
-      }
-    }));
     
-    toast.success(`Motor command sent for ${layers[layerKey].name}: ${newMotorState}`);
+    await controlZoneManual(layerId, newStatus);
+  };
+
+  const controlZoneManual = async (layerId, turnOn) => {
+    const newMotorState = turnOn ? 'ON' : 'OFF';
+    // Generate a moisture value: > 50 if ON, < 50 if OFF
+    const newMoisture = turnOn ? Math.floor(Math.random() * (90 - 55) + 55) : Math.floor(Math.random() * (45 - 20) + 20);
+
+    // Call ThingSpeak API
+    const thingspeakUrl = `https://api.thingspeak.com/update?api_key=SW3VZ01ZZFG7J7TN&field${layerId}=${turnOn ? 1 : 0}`;
+    
+    try {
+        await axios.get(thingspeakUrl);
+        toast.success(`Motor turned ${newMotorState} for Zone ${layerId}`);
+    } catch (e) {
+        console.error("Failed to update ThingSpeak:", e);
+        toast.error(`Failed to reach ThingSpeak for Zone ${layerId}`);
+    }
+
+    // Set local override so polling doesn't immediately overwrite it until the real sensor catches up
+    manualOverrides.current[layerId] = {
+        motor: newMotorState,
+        moisture: newMoisture,
+        pumpInfo: { status: turnOn }
+    };
+
+    // Optimistically update context
+    setLayers(prev => {
+        const layerKey = Object.keys(prev).find(key => prev[key].id === layerId);
+        if (!layerKey) return prev;
+
+        return {
+            ...prev,
+            [layerKey]: {
+                ...prev[layerKey],
+                motor: newMotorState,
+                moisture: newMoisture,
+                pumpInfo: { ...prev[layerKey].pumpInfo, status: turnOn }
+            }
+        };
+    });
   };
 
   return (
-    <FarmContext.Provider value={{ layers, history, togglePump, isConnected, isDemoMode, lastUpdated }}>
+    <FarmContext.Provider value={{ layers, history, togglePump, controlZoneManual, isConnected, isDemoMode, lastUpdated }}>
       {children}
     </FarmContext.Provider>
   );
