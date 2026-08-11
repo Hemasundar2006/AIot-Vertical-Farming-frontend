@@ -20,21 +20,17 @@ const THRESHOLDS = {
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
-    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 75, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
-    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 25, gas: 0, light: 0, motor: 'ON', pumpInfo: { status: true } },
-    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 75, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } }
+    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
+    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
+    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } }
   });
   const [lastUpdated, setLastUpdated] = useState('');
   const [history, setHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
-  // Keep track of manual overrides to prevent them from being immediately overwritten by polling
-  const manualOverrides = useRef({
-    1: { moisture: 75, motor: 'OFF', pumpInfo: { status: false } },
-    2: { moisture: 25, motor: 'ON', pumpInfo: { status: true } },
-    3: { moisture: 75, motor: 'OFF', pumpInfo: { status: false } }
-  });
+  // Keep track of manual overrides (starts empty so live API data is used by default)
+  const manualOverrides = useRef({});
 
   // Ref to keep track of previous values for alerts to avoid spamming
   const prevLayerState = useRef(layers);
@@ -69,9 +65,8 @@ export const FarmProvider = ({ children }) => {
         const zoneId = layer.id;
         const override = manualOverrides.current[zoneId];
 
-        // By default control by Zone Control if API data is missing/offline
-        const defaultMoisture = override?.moisture ?? (layer.moisture > 0 ? layer.moisture : (zoneId === 2 ? 25 : 75));
-        const defaultMotor = override?.motor ?? (defaultMoisture < 30 ? 'ON' : 'OFF');
+        const defaultMoisture = override?.moisture ?? layer.moisture;
+        const defaultMotor = override?.motor ?? layer.motor;
 
         resetState[key] = {
           ...layer,
@@ -175,14 +170,14 @@ export const FarmProvider = ({ children }) => {
                 const rawMotor = zone.motor !== undefined ? zone.motor : (zone.relay !== undefined ? zone.relay : zone.motor_status);
                 const rawSoil = zone.soil !== undefined && zone.soil !== null ? Number(zone.soil) : (zone.moisture !== undefined && zone.moisture !== null ? Number(zone.moisture) : null);
 
-                // If API returns valid soil value (> 0), use it; otherwise, default to Zone Control value
+                // Use manual override if user explicitly set one in Zone Control; otherwise use raw API soil value
                 let currentMoisture;
                 if (manualOverrides.current[zoneId]?.moisture !== undefined) {
                   currentMoisture = manualOverrides.current[zoneId].moisture;
-                } else if (rawSoil !== null && rawSoil > 0) {
+                } else if (rawSoil !== null && !isNaN(rawSoil)) {
                   currentMoisture = rawSoil;
                 } else {
-                  currentMoisture = newLayers[layerKey].moisture > 0 ? newLayers[layerKey].moisture : (zoneId === 2 ? 25 : 75);
+                  currentMoisture = newLayers[layerKey].moisture;
                 }
 
                 let motorState = newLayers[layerKey].motor || 'OFF';
