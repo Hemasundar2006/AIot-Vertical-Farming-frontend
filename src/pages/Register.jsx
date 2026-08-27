@@ -8,6 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [farmLocation, setFarmLocation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,8 +81,8 @@ const Register = () => {
                         required
                         className="block w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-agri-gold focus:border-agri-gold text-gray-900 placeholder-gray-400 transition-all font-medium shadow-sm hover:shadow-md"
                         placeholder="Farm Location"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={farmLocation}
+                        onChange={(e) => setFarmLocation(e.target.value)}
                     />
                     </div>
                 </div>
@@ -121,6 +122,29 @@ const Register = () => {
                         className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-gray-400 hover:text-gray-600 focus:outline-none"
                     >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <Lock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                         className="block w-full pl-11 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-agri-gold focus:border-agri-gold text-gray-900 placeholder-gray-400 transition-all font-medium shadow-sm hover:shadow-md"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                     </div>
                 </div>
