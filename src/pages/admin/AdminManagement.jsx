@@ -22,7 +22,7 @@ const AdminManagement = () => {
 
   const fetchProfiles = async () => {
     try {
-      const res = await axios.get(${API_URL}/admin/management); // Public route for now
+      const res = await axios.get(`${API_URL}/admin/management`); // Public route for now
       setProfiles(res.data);
     } catch (error) {
       toast.error('Failed to fetch management profiles');
@@ -37,7 +37,7 @@ const AdminManagement = () => {
     if (!window.confirm("Are you sure you want to delete this profile?")) return;
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.delete(${API_URL}/admin/management/, { headers: { Authorization: Bearer  } });
+      await axios.delete(`${API_URL}/admin/management/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Profile deleted');
       fetchProfiles();
     } catch (error) {
@@ -66,7 +66,7 @@ const AdminManagement = () => {
 
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.put(${API_URL}/admin/management/reorder, { orderings }, { headers: { Authorization: Bearer  } });
+      await axios.put(`${API_URL}/admin/management/reorder`, { orderings }, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Reordered successfully');
     } catch (error) {
       toast.error('Failed to reorder');
@@ -92,8 +92,8 @@ const AdminManagement = () => {
 
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.post(${API_URL}/admin/management, data, { 
-        headers: { Authorization: Bearer , 'Content-Type': 'multipart/form-data' } 
+      await axios.post(`${API_URL}/admin/management`, data, { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
       });
       toast.success('Profile added successfully!');
       setFormData({ name: '', designation: '', email: '', phone: '', collegeName: '', description: '', displayOrder: 0, isActive: true });
@@ -138,8 +138,8 @@ const AdminManagement = () => {
 
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.put(${API_URL}/admin/management/, data, { 
-        headers: { Authorization: Bearer , 'Content-Type': 'multipart/form-data' } 
+      await axios.put(`${API_URL}/admin/management/${editingProfile._id}`, data, { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
       });
       toast.success('Profile updated successfully!');
       setEditingProfile(null);
