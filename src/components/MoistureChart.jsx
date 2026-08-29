@@ -6,7 +6,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-slate-800 border border-slate-700 p-3 rounded-lg shadow-xl">
-        <p className="text-slate-400 text-xs mb-2">{new Date(label).toLocaleTimeString()}</p>
+        <p className="text-slate-400 text-sm md:text-xs mb-2">{new Date(label).toLocaleTimeString()}</p>
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 text-sm">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />

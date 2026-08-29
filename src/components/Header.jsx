@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Leaf, LogOut, Menu, X, LayoutDashboard, Home, MessageSquare, Phone, Brain, Receipt, Microscope } from 'lucide-react';
+import { Leaf, LogOut, Menu, X, LayoutDashboard, Home, MessageSquare, Phone, Brain, Receipt, Microscope, Bell, Sprout } from 'lucide-react';
 import { useFarm } from '../context/FarmContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -27,7 +27,7 @@ const Header = () => {
     ]
 
     const loggedInLinks = [
-        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'My Farm', path: '/my-farm', icon: Sprout },
         { name: 'ML Predictions', path: '/predictions' },
         { name: 'Plant Analyzer', path: '/plant-analyzer', icon: Microscope },
         { name: 'Market Rates', path: '/market-rates' },
@@ -35,9 +35,22 @@ const Header = () => {
         { name: 'Bills', path: '/bills', icon: Receipt },
     ];
 
-    const navLinks = user ? loggedInLinks : loggedOutLinks;
+    const adminLinks = [
+        { name: 'Admin Panel', path: '/admin' },
+        { name: 'Market Rates', path: '/market-rates' },
+        { name: 'AI Chatbot', path: '/chatbot' },
+    ];
+
+    const navLinks = user 
+        ? (user.role === 'admin' ? adminLinks : loggedInLinks) 
+        : loggedOutLinks;
 
     const handleNav = (path) => {
+        if (path === '/chatbot') {
+            window.dispatchEvent(new CustomEvent('toggle-chatbot'));
+            setIsMobileMenuOpen(false);
+            return;
+        }
         navigate(path);
         setIsMobileMenuOpen(false);
     };
@@ -72,7 +85,7 @@ const Header = () => {
                             <button
                                 key={link.name}
                                 onClick={() => handleNav(link.path)}
-                                className={`text-[11px] font-bold tracking-[0.1em] transition-all uppercase flex flex-col items-center ${isActive
+                                className={`text-sm md:text-[11px] font-bold tracking-[0.1em] transition-all uppercase flex flex-col items-center ${isActive
                                     ? 'text-[#C49E40]'
                                     : 'text-gray-700 hover:text-gray-900'
                                     }`}
@@ -96,24 +109,34 @@ const Header = () => {
                     {/* System Status Indicator (Only shown when logged in) */}
                     {user && (
                         <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-gray-300 shadow-sm">
-                            <span className="text-[11px] font-bold tracking-wider uppercase text-gray-800">
+                            <span className="text-sm md:text-[11px] font-bold tracking-wider uppercase text-gray-800">
                                 {isConnected ? 'LIVE' : 'OFFLINE'}
                             </span>
                         </div>
                     )}
 
+                    {user && (
+                        <button
+                            onClick={() => handleNav('/notifications')}
+                            className="relative p-2 text-gray-700 hover:text-[#C99D3B] transition-colors hidden md:block"
+                        >
+                            <Bell size={20} />
+                            {/* Optional: Add a small red dot if unread */}
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    )}
                     {/* Auth */}
                     {!user ? (
                         <div className="hidden md:flex items-center gap-3">
                             <button
                                 onClick={() => handleNav('/login')}
-                                className="text-[11px] font-bold tracking-wider uppercase px-4 py-2 text-gray-700 hover:text-[#C49E40] transition-colors"
+                                className="text-sm md:text-[11px] font-bold tracking-wider uppercase px-4 py-2 text-gray-700 hover:text-[#C49E40] transition-colors"
                             >
                                 SIGN IN
                             </button>
                             <button
                                 onClick={() => handleNav('/register')}
-                                className="bg-[#C49E40] text-white px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider hover:bg-[#b38f3a] transition-colors shadow-md"
+                                className="bg-[#C49E40] text-white px-5 py-2 rounded-full text-sm md:text-[11px] font-bold uppercase tracking-wider hover:bg-[#b38f3a] transition-colors shadow-md"
                             >
                                 SIGN UP
                             </button>
@@ -131,11 +154,11 @@ const Header = () => {
                                 <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-50">
                                     <div className="px-5 py-3 border-b border-gray-50">
                                         <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
-                                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                        <p className="text-sm md:text-xs text-gray-500 truncate">{user.email}</p>
                                     </div>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full text-left px-5 py-3 text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                                        className="w-full text-left px-5 py-3 text-sm md:text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                                     >
                                         <LogOut size={14} /> SIGN OUT
                                     </button>
@@ -162,7 +185,7 @@ const Header = () => {
                             <button
                                 key={link.name}
                                 onClick={() => handleNav(link.path)}
-                                className="px-6 py-4 text-center text-xs font-bold tracking-wider uppercase text-gray-700 hover:bg-gray-50 hover:text-[#C99D3B] border-b border-gray-100 last:border-0 flex items-center justify-center gap-2"
+                                className="px-6 py-4 text-center text-sm md:text-xs font-bold tracking-wider uppercase text-gray-700 hover:bg-gray-50 hover:text-[#C99D3B] border-b border-gray-100 last:border-0 flex items-center justify-center gap-2"
                             >
                                 {link.icon && <link.icon size={16} />}
                                 {link.name}
@@ -173,13 +196,13 @@ const Header = () => {
                             <div className="flex flex-col p-4 gap-3 bg-gray-50/50">
                                 <button
                                     onClick={() => handleNav('/login')}
-                                    className="py-3 text-center text-gray-700 font-bold uppercase tracking-wider text-xs hover:text-[#C99D3B]"
+                                    className="py-3 text-center text-gray-700 font-bold uppercase tracking-wider text-sm md:text-xs hover:text-[#C99D3B]"
                                 >
                                     SIGN IN
                                 </button>
                                 <button
                                     onClick={() => handleNav('/register')}
-                                    className="py-3 text-center bg-[#C99D3B] text-white rounded-full font-bold uppercase tracking-wider text-xs shadow-md"
+                                    className="py-3 text-center bg-[#C99D3B] text-white rounded-full font-bold uppercase tracking-wider text-sm md:text-xs shadow-md"
                                 >
                                     SIGN UP
                                 </button>
@@ -188,7 +211,7 @@ const Header = () => {
                             <div className="p-4 bg-gray-50/50 border-t border-gray-100">
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full py-3 bg-red-50 text-red-600 rounded-full font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 shadow-sm"
+                                    className="w-full py-3 bg-red-50 text-red-600 rounded-full font-bold uppercase tracking-wider text-sm md:text-xs flex items-center justify-center gap-2 shadow-sm"
                                 >
                                     <LogOut size={16} /> SIGN OUT
                                 </button>
@@ -202,3 +225,6 @@ const Header = () => {
 };
 
 export default Header;
+
+
+

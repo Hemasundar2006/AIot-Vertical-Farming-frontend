@@ -93,7 +93,7 @@ const ImageDetection = () => {
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 text-xs font-bold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 text-sm md:text-xs font-bold uppercase tracking-wider mb-4"
           >
             <Camera size={14} /> Live Image Detection
           </motion.div>
@@ -132,13 +132,13 @@ const ImageDetection = () => {
               <div className="flex flex-col items-center justify-center bg-red-50 rounded-xl border border-red-100 text-red-700 text-center px-4 py-10">
                 <AlertTriangle size={24} className="mb-2" />
                 <p className="text-sm font-semibold">Failed to load live stream</p>
-                <p className="text-xs text-red-600 mt-1">{error}</p>
+                <p className="text-sm md:text-xs text-red-600 mt-1">{error}</p>
               </div>
             ) : !streamUrl ? (
               <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-100 text-slate-700 text-center px-4 py-10">
                 <RefreshCw className="mb-2 text-blue-600" size={24} />
                 <p className="text-sm font-semibold">Waiting for live link</p>
-                <p className="text-xs text-slate-500 mt-1">Set a YouTube live link in the Contact page.</p>
+                <p className="text-sm md:text-xs text-slate-500 mt-1">Set a YouTube live link in the Contact page.</p>
               </div>
             ) : (
               <LiveAnalyzer streamUrl={streamUrl} />

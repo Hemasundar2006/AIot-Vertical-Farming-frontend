@@ -57,7 +57,7 @@ const TabButton = ({ active, onClick, icon: Icon, label, badge }) => (
   >
     <Icon size={15} />
     {label}
-    {badge && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-[#C49E40] text-white">{badge}</span>}
+    {badge && <span className="px-1.5 py-0.5 rounded-full text-sm md:text-[10px] font-black bg-[#C49E40] text-white">{badge}</span>}
   </button>
 );
 
@@ -100,7 +100,7 @@ const DropZone = ({ file, setFile, onAnalyze, loading }) => {
           <p className="text-sm text-gray-500 font-medium mb-6 text-center max-w-xs">
             Drag and drop or click to browse. Supports JPG, PNG, WEBP.
           </p>
-          <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#213E20] text-white text-xs font-bold uppercase tracking-wider shadow-md">
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#213E20] text-white text-sm md:text-xs font-bold uppercase tracking-wider shadow-md">
             <Camera size={14} /> Choose File
           </div>
           <input ref={inputRef} type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) setFile(f); }} className="hidden" />
@@ -117,7 +117,7 @@ const DropZone = ({ file, setFile, onAnalyze, loading }) => {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{file.name}</p>
-                <p className="text-xs text-gray-400 font-medium">{(file.size / 1024).toFixed(1)} KB</p>
+                <p className="text-sm md:text-xs text-gray-400 font-medium">{(file.size / 1024).toFixed(1)} KB</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -129,7 +129,7 @@ const DropZone = ({ file, setFile, onAnalyze, loading }) => {
                 disabled={loading}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-2.5 rounded-full bg-[#C49E40] text-white font-bold uppercase tracking-wider text-xs shadow-lg hover:bg-[#b38f3a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2.5 rounded-full bg-[#C49E40] text-white font-bold uppercase tracking-wider text-sm md:text-xs shadow-lg hover:bg-[#b38f3a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {loading ? <><Loader2 size={14} className="animate-spin" /> Analyzing...</> : <><Microscope size={14} /> Analyze</>}
               </motion.button>
@@ -167,7 +167,7 @@ const ResultCard = ({ prediction }) => {
           {healthy ? <CheckCircle2 size={28} /> : <AlertTriangle size={28} />}
         </motion.div>
         <div className="flex-1 min-w-0">
-          <div className={`text-[11px] font-black uppercase tracking-widest mb-1 ${healthy ? 'text-green-600' : 'text-amber-600'}`}>
+          <div className={`text-sm md:text-[11px] font-black uppercase tracking-widest mb-1 ${healthy ? 'text-green-600' : 'text-amber-600'}`}>
             {healthy ? 'Healthy Plant' : 'Disease Detected'}
           </div>
           <h3 className="text-2xl font-extrabold text-gray-900 mb-2 leading-tight">{pred.className}</h3>
@@ -192,7 +192,7 @@ const ClassesSection = ({ classes }) => {
           <div className="w-9 h-9 rounded-xl bg-[#213E20]/8 flex items-center justify-center text-[#213E20]"><Info size={17} /></div>
           <div className="text-left">
             <p className="font-bold text-gray-900 text-sm">Supported Plant Classes</p>
-            <p className="text-xs text-gray-400 font-medium">{classes.length} disease categories</p>
+            <p className="text-sm md:text-xs text-gray-400 font-medium">{classes.length} disease categories</p>
           </div>
         </div>
         {open ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
@@ -206,7 +206,7 @@ const ClassesSection = ({ classes }) => {
                   const displayName = typeof cls === 'string' ? cls.replace(/_+/g, ' ') : String(cls);
                   const classHealthy = displayName.toLowerCase().includes('healthy') && !displayName.toLowerCase().includes('unhealthy');
                   return (
-                    <span key={i} className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wider border ${classHealthy ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                    <span key={i} className={`px-3 py-1 rounded-full text-sm md:text-[11px] font-bold tracking-wider border ${classHealthy ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                       {displayName}
                     </span>
                   );
@@ -249,7 +249,7 @@ const LiveStreamPanel = () => {
           <div className="w-10 h-10 rounded-xl bg-[#213E20]/8 flex items-center justify-center text-[#213E20]"><Link size={18} /></div>
           <div>
             <p className="font-bold text-gray-900 text-sm">IP Webcam / Camera URL</p>
-            <p className="text-xs text-gray-400 font-medium">Enter the MJPEG stream URL from your IP camera app</p>
+            <p className="text-sm md:text-xs text-gray-400 font-medium">Enter the MJPEG stream URL from your IP camera app</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -272,8 +272,8 @@ const LiveStreamPanel = () => {
           )}
         </div>
         <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
-          <p className="text-xs text-blue-700 font-bold mb-1 flex items-center gap-1.5"><Info size={12} /> How to get your IP camera URL</p>
-          <ul className="text-xs text-blue-600 font-medium space-y-0.5 list-disc list-inside">
+          <p className="text-sm md:text-xs text-blue-700 font-bold mb-1 flex items-center gap-1.5"><Info size={12} /> How to get your IP camera URL</p>
+          <ul className="text-sm md:text-xs text-blue-600 font-medium space-y-0.5 list-disc list-inside">
             <li>Install <strong>IP Webcam</strong> app on your Android phone</li>
             <li>Start the server in the app and note the IP address shown</li>
             <li>Enter the URL like: <code className="font-mono bg-blue-100 px-1 rounded">http://192.168.x.x:8080/video</code></li>
@@ -288,7 +288,7 @@ const LiveStreamPanel = () => {
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600"><Video size={17} /></div>
             <div>
               <p className="font-bold text-gray-900 text-sm">Live Feed with AI Detection</p>
-              <p className="text-xs text-gray-400 font-medium">Disease predictions are rendered directly on frames</p>
+              <p className="text-sm md:text-xs text-gray-400 font-medium">Disease predictions are rendered directly on frames</p>
             </div>
           </div>
           {streamActive && !imgError && (
@@ -297,13 +297,13 @@ const LiveStreamPanel = () => {
                 href={streamSrc}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[11px] font-bold text-blue-600 underline hover:text-blue-800"
+                className="text-sm md:text-[11px] font-bold text-blue-600 underline hover:text-blue-800"
               >
                 Open Stream in New Tab
               </a>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs font-bold text-red-600 uppercase tracking-wider">Live</span>
+                <span className="text-sm md:text-xs font-bold text-red-600 uppercase tracking-wider">Live</span>
               </div>
             </div>
           )}
@@ -314,7 +314,7 @@ const LiveStreamPanel = () => {
               <div className="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center"><Camera size={28} className="text-gray-600" /></div>
               <div className="text-center">
                 <p className="text-sm font-bold text-gray-400">No stream active</p>
-                <p className="text-xs text-gray-600 mt-1">Enter your camera URL above and click Connect</p>
+                <p className="text-sm md:text-xs text-gray-600 mt-1">Enter your camera URL above and click Connect</p>
               </div>
             </div>
           ) : imgError ? (
@@ -322,10 +322,10 @@ const LiveStreamPanel = () => {
               <div className="w-16 h-16 rounded-2xl bg-red-900/30 flex items-center justify-center"><WifiOff size={28} className="text-red-400" /></div>
               <div className="text-center">
                 <p className="text-sm font-bold text-red-400">Stream connection failed</p>
-                <p className="text-xs text-gray-500 mt-1">Check the URL or ensure the Flask server is running</p>
+                <p className="text-sm md:text-xs text-gray-500 mt-1">Check the URL or ensure the Flask server is running</p>
                 <button
                   onClick={() => { setImgError(false); const u = cameraUrl; setActiveUrl(''); setTimeout(() => setActiveUrl(u), 100); }}
-                  className="mt-3 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-full bg-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/30 transition-colors"
+                  className="mt-3 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-full bg-red-500/20 text-red-400 text-sm md:text-xs font-bold hover:bg-red-500/30 transition-colors"
                 >
                   <RefreshCw size={12} /> Retry
                 </button>
@@ -342,7 +342,7 @@ const LiveStreamPanel = () => {
               />
               <div className="absolute top-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
                 <Scan size={12} className="text-[#C49E40]" />
-                <span className="text-[11px] font-black text-white uppercase tracking-wider">AI Scanning</span>
+                <span className="text-sm md:text-[11px] font-black text-white uppercase tracking-wider">AI Scanning</span>
               </div>
             </div>
           )}
@@ -355,7 +355,7 @@ const LiveStreamPanel = () => {
           <div className="w-10 h-10 rounded-xl bg-[#C49E40]/20 flex items-center justify-center shrink-0"><Wifi size={18} className="text-[#C49E40]" /></div>
           <div>
             <h4 className="font-extrabold mb-1 text-sm">Live Disease Detection on Camera Streams</h4>
-            <p className="text-xs text-gray-300 font-medium leading-relaxed">
+            <p className="text-sm md:text-xs text-gray-300 font-medium leading-relaxed">
               The Flask AI server processes each frame from your IP camera in real time and burns the disease prediction label directly onto the video. Make sure the server at <code className="font-mono text-[#C49E40]">leaf-detection-imgp.onrender.com</code> is running before connecting.
             </p>
           </div>
@@ -403,7 +403,7 @@ const PlantAnalyzer = () => {
 
       <div className="max-w-5xl mx-auto relative z-10">
         <motion.div className="text-center max-w-3xl mx-auto mb-10" initial="hidden" animate="visible" variants={stagger}>
-          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10">
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-sm md:text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10">
             <Microscope size={13} className="text-[#C49E40]" /> Plant Disease Detection
           </motion.div>
           <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
@@ -433,7 +433,7 @@ const PlantAnalyzer = () => {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">Analyzing your leaf...</p>
-                        <p className="text-xs text-gray-400 font-medium">This may take a few seconds</p>
+                        <p className="text-sm md:text-xs text-gray-400 font-medium">This may take a few seconds</p>
                       </div>
                     </motion.div>
                   )}
@@ -468,9 +468,9 @@ const PlantAnalyzer = () => {
                 </motion.div>
 
                 <motion.div variants={fadeInUp} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">API Endpoint</p>
-                  <div className="bg-gray-50 rounded-xl p-3 font-mono text-xs text-gray-600 break-all">POST /predict_image</div>
-                  <p className="text-[11px] text-gray-400 font-medium mt-2">Returns: <code className="font-mono bg-gray-100 px-1 rounded">{"{ prediction: \"Class_Name\" }"}</code></p>
+                  <p className="text-sm md:text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">API Endpoint</p>
+                  <div className="bg-gray-50 rounded-xl p-3 font-mono text-sm md:text-xs text-gray-600 break-all">POST /predict_image</div>
+                  <p className="text-sm md:text-[11px] text-gray-400 font-medium mt-2">Returns: <code className="font-mono bg-gray-100 px-1 rounded">{"{ prediction: \"Class_Name\" }"}</code></p>
                 </motion.div>
               </div>
             </motion.div>

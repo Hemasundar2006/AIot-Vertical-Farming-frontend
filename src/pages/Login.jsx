@@ -17,7 +17,24 @@ const Login = () => {
     const success = await login(email, password);
     setIsLoading(false);
     if (success) {
-      navigate('/dashboard');
+      const userStr = localStorage.getItem('farm_user');
+      let isAdmin = false;
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.role === 'admin') {
+            isAdmin = true;
+          }
+        } catch (err) {
+          console.error("Error parsing user data", err);
+        }
+      }
+      
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/my-farm');
+      }
     }
   };
 
@@ -108,7 +125,7 @@ const Login = () => {
                 {/* Divider */}
                 <div className="my-6 flex items-center">
                     <div className="flex-1 border-t border-slate-300"></div>
-                    <span className="px-4 text-xs text-slate-500 uppercase font-medium">or</span>
+                    <span className="px-4 text-sm md:text-xs text-slate-500 uppercase font-medium">or</span>
                     <div className="flex-1 border-t border-slate-300"></div>
                 </div>
                 
@@ -128,7 +145,7 @@ const Login = () => {
       </div>
       
        {/* Bottom Footer Links */}
-       <div className="absolute bottom-6 left-0 w-full text-center z-10 text-xs text-white/60 font-medium">
+       <div className="absolute bottom-6 left-0 w-full text-center z-10 text-sm md:text-xs text-white/60 font-medium">
           <span className="hover:text-white cursor-pointer mx-2">Privacy Policy</span>
           <span>•</span>
           <span className="hover:text-white cursor-pointer mx-2">Terms of Service</span>

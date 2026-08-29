@@ -1,0 +1,267 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { Briefcase, Trash2, Edit, Upload, X } from 'lucide-react';
+import Pagination from '../../components/Pagination';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
+
+const AdminManagement = () => {
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+  const [file, setFile] = useState(null);
+
+  // Edit State
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [editFormData, setEditFormData] = useState({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+  const [editFile, setEditFile] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const fetchProfiles = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/admin/management`); // Public route for now
+      setProfiles(res.data);
+    } catch (error) {
+      toast.error('Failed to fetch management profiles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchProfiles(); }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this profile?")) return;
+    try {
+      const token = localStorage.getItem('farm_token');
+      await axios.delete(`${API_URL}/admin/management/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Profile deleted');
+      fetchProfiles();
+    } catch (error) {
+      toast.error('Failed to delete profile');
+    }
+  };
+
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault();
+    setIsUploading(true);
+    
+    const data = new FormData();
+    if (file) data.append('file', file);
+    data.append('name', formData.name);
+    data.append('designation', formData.designation);
+    data.append('email', formData.email);
+    data.append('phone', formData.phone);
+    data.append('description', formData.description);
+    data.append('displayOrder', formData.displayOrder);
+    data.append('isActive', formData.isActive);
+
+    try {
+      const token = localStorage.getItem('farm_token');
+      await axios.post(`${API_URL}/admin/management`, data, { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
+      });
+      toast.success('Profile added successfully!');
+      setFormData({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+      setFile(null);
+      fetchProfiles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add profile');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleEditClick = (profile) => {
+    setEditingProfile(profile);
+    setEditFormData({
+      name: profile.name || '',
+      designation: profile.designation || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      description: profile.description || '',
+      displayOrder: profile.displayOrder || 0,
+      isActive: profile.isActive ?? true
+    });
+    setEditFile(null);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setIsUploading(true);
+    
+    const data = new FormData();
+    if (editFile) data.append('file', editFile);
+    data.append('name', editFormData.name);
+    data.append('designation', editFormData.designation);
+    data.append('email', editFormData.email);
+    data.append('phone', editFormData.phone);
+    data.append('description', editFormData.description);
+    data.append('displayOrder', editFormData.displayOrder);
+    data.append('isActive', editFormData.isActive);
+
+    try {
+      const token = localStorage.getItem('farm_token');
+      await axios.put(`${API_URL}/admin/management/${editingProfile._id}`, data, { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
+      });
+      toast.success('Profile updated successfully!');
+      setEditingProfile(null);
+      fetchProfiles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  if (loading) return <div className="text-center py-12">Loading...</div>;
+
+  return (
+    <div className="space-y-8">
+      {/* Add Form */}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-amber-50 rounded-xl text-[#C49E40]">
+            <Briefcase size={24} />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg text-gray-900">Add Management Profile</h3>
+            <p className="text-sm text-gray-500">Publish a new team member to the About page.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleUploadSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" required placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
+            <input type="text" required placeholder="Designation" value={formData.designation} onChange={(e) => setFormData({...formData, designation: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
+            <input type="email" required placeholder="Email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
+            <input type="text" placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
+          </div>
+          <textarea required placeholder="Biography..." rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40] resize-none" />
+          
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50" onClick={() => document.getElementById('mfile').click()}>
+            <span className="text-sm font-medium text-gray-600">{file ? file.name : 'Select Profile Image'}</span>
+            <input type="file" id="mfile" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+          </div>
+
+          <button type="submit" disabled={isUploading} className="px-6 py-3 bg-[#C49E40] text-white font-bold rounded-xl hover:bg-[#b38f3a] disabled:opacity-50 transition-colors">
+            {isUploading ? 'Publishing...' : 'Publish Profile'}
+          </button>
+        </form>
+      </div>
+
+      {/* Profiles List */}
+      <div>
+        <h3 className="font-bold text-lg text-gray-900 mb-4">Current Team Members</h3>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto w-full">
+          <table className="w-full text-left text-sm text-gray-500">
+            <thead className="bg-gray-50 text-gray-700 text-sm md:text-xs uppercase font-bold">
+              <tr>
+                <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">Designation</th>
+                <th className="px-6 py-4">Contact</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {profiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(profile => (
+                <tr key={profile._id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                    {profile.photoUrl ? (
+                      <img src={profile.photoUrl} alt={profile.name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">{profile.name.charAt(0)}</div>
+                    )}
+                    {profile.name}
+                  </td>
+                  <td className="px-6 py-4">{profile.designation}</td>
+                  <td className="px-6 py-4">{profile.email}</td>
+                  <td className="px-6 py-4 flex items-center justify-end gap-3">
+                    <button onClick={() => handleEditClick(profile)} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Profile">
+                      <Edit size={18} />
+                    </button>
+                    <button onClick={() => handleDelete(profile._id)} className="text-red-500 hover:text-red-700 transition-colors" title="Delete Profile">
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {profiles.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center">No profiles found.</td></tr>}
+            </tbody>
+          </table>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={Math.ceil(profiles.length / itemsPerPage)} 
+            onPageChange={setCurrentPage} 
+          />
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {editingProfile && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="text-xl font-black text-gray-800 uppercase tracking-wide">Edit Profile</h3>
+              <button onClick={() => setEditingProfile(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <form id="editForm" onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
+                    <input type="text" required value={editFormData.name} onChange={(e) => setEditFormData({...editFormData, name: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Designation</label>
+                    <input type="text" required value={editFormData.designation} onChange={(e) => setEditFormData({...editFormData, designation: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" required value={editFormData.email} onChange={(e) => setEditFormData({...editFormData, email: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone</label>
+                    <input type="text" value={editFormData.phone} onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Biography</label>
+                  <textarea required rows="4" value={editFormData.description} onChange={(e) => setEditFormData({...editFormData, description: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40] resize-none" />
+                </div>
+                
+                <div>
+                  <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Profile Image (Optional)</label>
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => document.getElementById('editFile').click()}>
+                    <span className="text-sm font-medium text-gray-600">{editFile ? editFile.name : 'Upload New Image to Replace Current'}</span>
+                    <input type="file" id="editFile" accept="image/*" className="hidden" onChange={(e) => setEditFile(e.target.files[0])} />
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4">
+              <button type="button" onClick={() => setEditingProfile(null)} className="flex-1 py-3 text-gray-600 hover:bg-gray-200 bg-gray-100 rounded-xl font-bold uppercase tracking-wider text-sm transition-colors">
+                Cancel
+              </button>
+              <button form="editForm" type="submit" disabled={isUploading} className="flex-1 py-3 bg-[#C49E40] hover:bg-[#b38f3a] text-white rounded-xl font-bold uppercase tracking-wider text-sm transition-colors shadow-md">
+                {isUploading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminManagement;

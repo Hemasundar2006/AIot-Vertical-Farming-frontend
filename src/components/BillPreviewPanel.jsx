@@ -13,7 +13,7 @@ const BillPreviewPanel = ({ title, items, totals }) => {
 
             <div className="text-center mb-6 pt-4 border-b border-gray-200 border-dashed pb-4 relative z-10">
                 <h3 className="text-lg font-serif font-black text-gray-900 tracking-wider uppercase">Live Preview</h3>
-                <p className="text-xs text-gray-500 font-bold tracking-widest uppercase mt-1">{title}</p>
+                <p className="text-sm md:text-xs text-gray-500 font-bold tracking-widest uppercase mt-1">{title}</p>
             </div>
 
             <div className="flex-1 space-y-4 text-sm font-medium relative z-10">
@@ -21,7 +21,7 @@ const BillPreviewPanel = ({ title, items, totals }) => {
                     <div key={index} className="flex justify-between items-start">
                         <div className="text-gray-600">
                             <span className="block">{item.label}</span>
-                            {item.subtext && <span className="text-[10px] text-gray-400 font-bold block">{item.subtext}</span>}
+                            {item.subtext && <span className="text-sm md:text-[10px] text-gray-400 font-bold block">{item.subtext}</span>}
                         </div>
                         <span className="text-gray-900 font-bold flex items-center">
                             <IndianRupee size={12} className="mr-0.5" />

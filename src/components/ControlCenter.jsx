@@ -14,7 +14,7 @@ const ControlCard = ({ layer, onToggle }) => {
         </div>
         <div>
           <h4 className="font-medium text-white">{layer.name} Motor</h4>
-          <p className="text-xs text-slate-400">
+          <p className="text-sm md:text-xs text-slate-400">
             Motor Status: <span className={`font-bold ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>{motorStatus}</span> ({isActive ? 'Running' : 'Stopped'})
           </p>
         </div>
@@ -42,7 +42,7 @@ const ControlCenter = () => {
             <div className="h-6 w-1 bg-blue-500 rounded-full"/>
             Control Center
         </h2>
-        <span className="text-xs font-mono text-slate-400 border border-slate-700 px-2 py-1 rounded">
+        <span className="text-sm md:text-xs font-mono text-slate-400 border border-slate-700 px-2 py-1 rounded">
             MANUAL OVERRIDE
         </span>
       </div>

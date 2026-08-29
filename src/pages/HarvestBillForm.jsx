@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { createHarvestBill, downloadBillPdf } from '../services/billApiService';
+import { createBill, downloadBillPdf } from '../services/billApiService';
 import BillPreviewPanel from '../components/BillPreviewPanel';
 import { BILLING_CONSTANTS } from '../config/billingConstants';
 
@@ -62,8 +62,8 @@ const HarvestBillForm = () => {
         }
         setLoading(true);
         try {
-            const billData = { ...formData, ...preview };
-            const response = await createHarvestBill(billData);
+            const billData = { ...formData, ...preview, type: 'harvest' };
+            const response = await createBill(billData);
             
             toast.success(
                 (t) => (
@@ -71,10 +71,10 @@ const HarvestBillForm = () => {
                         <span>Harvest bill created successfully!</span>
                         <button 
                             onClick={() => {
-                                downloadBillPdf('harvest', response.id || response._id, response.invoice_number);
+                                downloadBillPdf(response.id || response._id, response.invoice_number);
                                 toast.dismiss(t.id);
                             }}
-                            className="bg-[#213E20] text-white px-3 py-1.5 rounded text-xs font-bold w-full"
+                            className="bg-[#213E20] text-white px-3 py-1.5 rounded text-sm md:text-xs font-bold w-full"
                         >
                             Download PDF
                         </button>
@@ -123,7 +123,7 @@ const HarvestBillForm = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Farm Unit</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Farm Unit</label>
                                     <select name="unit" value={formData.unit} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none">
                                         <option value="Unit 1">Unit 1</option>
                                         <option value="Unit 2">Unit 2</option>
@@ -131,7 +131,7 @@ const HarvestBillForm = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Crop Name</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Crop Name</label>
                                     <input type="text" placeholder="e.g. Tomato, Spinach" name="crop_name" value={formData.crop_name} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                             </div>
@@ -140,22 +140,22 @@ const HarvestBillForm = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Harvest Quantity (kg)</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Harvest Quantity (kg)</label>
                                     <input type="number" min="0" step="0.1" name="harvest_quantity" value={formData.harvest_quantity} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Market Rate ({BILLING_CONSTANTS.CURRENCY_SYMBOL}/kg)</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Market Rate ({BILLING_CONSTANTS.CURRENCY_SYMBOL}/kg)</label>
                                     <input type="number" min="0" step="0.1" name="market_rate" value={formData.market_rate} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Harvest Date</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Harvest Date</label>
                                     <input type="date" name="harvest_date" value={formData.harvest_date} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Quality Grade</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Quality Grade</label>
                                     <select name="quality_grade" value={formData.quality_grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none">
                                         <option value="A">Grade A (Premium)</option>
                                         <option value="B">Grade B (Standard)</option>
@@ -168,21 +168,21 @@ const HarvestBillForm = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Packaging Fee ({BILLING_CONSTANTS.CURRENCY_SYMBOL})</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Packaging Fee ({BILLING_CONSTANTS.CURRENCY_SYMBOL})</label>
                                     <input type="number" min="0" step="0.1" name="packaging_fee" value={formData.packaging_fee} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Logistics Fee ({BILLING_CONSTANTS.CURRENCY_SYMBOL})</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Logistics Fee ({BILLING_CONSTANTS.CURRENCY_SYMBOL})</label>
                                     <input type="number" min="0" step="0.1" name="logistics_fee" value={formData.logistics_fee} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Commission (%)</label>
+                                    <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Commission (%)</label>
                                     <input type="number" min="0" step="0.1" name="commission_percent" value={formData.commission_percent} onChange={handleChange} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-medium focus:outline-none" required />
                                 </div>
                             </div>
 
                             <div className="pt-4 flex justify-end">
-                                <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-3 bg-[#213E20] hover:bg-[#152914] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all disabled:opacity-70">
+                                <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-3 bg-[#213E20] hover:bg-[#152914] text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-md transition-all disabled:opacity-70">
                                     <Save size={16} /> {loading ? 'Saving...' : 'Generate Bill'}
                                 </button>
                             </div>

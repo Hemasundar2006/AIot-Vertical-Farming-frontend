@@ -9,7 +9,7 @@ const BillCard = ({ bill }) => {
     
     const handleDownload = async () => {
         try {
-            await downloadBillPdf(isUtility ? 'utility' : 'harvest', bill.id || bill._id, bill.invoice_number);
+            await downloadBillPdf(bill.id || bill._id, bill.invoice_number);
             toast.success('PDF downloaded successfully');
         } catch (error) {
             toast.error('Failed to download PDF');
@@ -24,14 +24,14 @@ const BillCard = ({ bill }) => {
             <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex flex-wrap gap-1.5">
-                        <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-md border ${isUtility ? 'bg-blue-50 text-blue-800 border-blue-200/60' : 'bg-emerald-50 text-emerald-800 border-emerald-200/60'}`}>
+                        <span className={`px-2.5 py-1 text-sm md:text-[10px] font-black uppercase tracking-wider rounded-md border ${isUtility ? 'bg-blue-50 text-blue-800 border-blue-200/60' : 'bg-emerald-50 text-emerald-800 border-emerald-200/60'}`}>
                             {isUtility ? 'Utility Bill' : 'Harvest Bill'}
                         </span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm md:text-[10px] font-bold uppercase tracking-wider rounded-md">
                             {bill.status || 'Generated'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-gray-400">
+                    <div className="flex items-center gap-1 text-sm md:text-[11px] font-bold text-gray-400">
                         <Calendar size={12} />
                         <span>{new Date(bill.created_at || new Date()).toLocaleDateString()}</span>
                     </div>
@@ -43,7 +43,7 @@ const BillCard = ({ bill }) => {
                 </h3>
 
                 {/* Icon & Subtitle */}
-                <div className="space-y-1 mb-6 text-xs text-gray-600">
+                <div className="space-y-1 mb-6 text-sm md:text-xs text-gray-600">
                     <div className="flex items-center gap-1.5 font-semibold text-gray-800">
                         {isUtility ? <Zap size={14} className="text-blue-500" /> : <Wheat size={14} className="text-emerald-500" />}
                         <span>{isUtility ? `Billing Month: ${bill.billing_month || ''} ${bill.billing_year || ''}` : `Crop: ${bill.crop_name || 'N/A'}`}</span>
@@ -54,7 +54,7 @@ const BillCard = ({ bill }) => {
             {/* Price & Action Section */}
             <div className="bg-gray-50/90 rounded-xl p-4 border border-gray-100 flex items-end justify-between">
                 <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1 block">Total Amount</span>
+                    <span className="text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1 block">Total Amount</span>
                     <span className="text-2xl font-black text-[#1F3B21] flex items-center">
                         <IndianRupee size={20} className="mr-0.5" />
                         {Number(totalAmount || 0).toLocaleString('en-IN')}

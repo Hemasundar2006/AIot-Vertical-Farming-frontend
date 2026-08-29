@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, RefreshCw, Zap, Wheat, Search, Filter } from 'lucide-react';
-import { getUtilityBills, getHarvestBills } from '../services/billApiService';
+import { getBills } from '../services/billApiService';
 import BillCard from '../components/BillCard';
 
 const BillDashboard = () => {
@@ -14,16 +14,10 @@ const BillDashboard = () => {
     const fetchBills = async () => {
         setLoading(true);
         try {
-            const [utilityData, harvestData] = await Promise.all([
-                getUtilityBills().catch(() => []),
-                getHarvestBills().catch(() => [])
-            ]);
+            const data = await getBills().catch(() => []);
             
-            // Format bills and combine
-            const combinedBills = [
-                ...(Array.isArray(utilityData) ? utilityData : []).map(b => ({ ...b, type: 'utility' })),
-                ...(Array.isArray(harvestData) ? harvestData : []).map(b => ({ ...b, type: 'harvest' }))
-            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            // Format bills
+            const combinedBills = (Array.isArray(data) ? data : []).sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
 
             setBills(combinedBills);
         } catch (error) {
@@ -39,7 +33,7 @@ const BillDashboard = () => {
 
     const filteredBills = bills.filter(bill => {
         const matchesType = filterType === 'all' || bill.type === filterType;
-        const matchesSearch = (bill.invoice_number || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (bill.invoice_number || bill.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
         return matchesType && matchesSearch;
     });
 
@@ -56,15 +50,16 @@ const BillDashboard = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
+                    {/* Hiding create buttons for non-admins, but leaving UI intact for demonstration. Admin will have AdminDashboard. */}
                     <button
                         onClick={() => navigate('/bills/utility/new')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#C49E40] text-[#C49E40] hover:bg-amber-50 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#C49E40] text-[#C49E40] hover:bg-amber-50 font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all"
                     >
                         <Zap size={15} /> Utility Bill
                     </button>
                     <button
                         onClick={() => navigate('/bills/harvest/new')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-[#C49E40] hover:bg-[#b38f3a] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-[#C49E40] hover:bg-[#b38f3a] text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
                     >
                         <Wheat size={15} /> Harvest Bill
                     </button>
@@ -88,7 +83,7 @@ const BillDashboard = () => {
                             <button
                                 key={type}
                                 onClick={() => setFilterType(type)}
-                                className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                                className={`flex-1 py-2.5 px-4 rounded-xl text-sm md:text-xs font-bold uppercase tracking-wider transition-all border ${
                                     filterType === type 
                                     ? 'bg-[#213E20] text-white border-[#213E20] shadow-sm' 
                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -108,7 +103,7 @@ const BillDashboard = () => {
             ) : filteredBills.length === 0 ? (
                 <div className="bg-white/80 backdrop-blur-md rounded-2xl p-16 flex flex-col items-center justify-center border border-gray-200 text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">No Bills Found</h3>
-                    <p className="text-gray-500 text-sm">Get started by creating a new utility or harvest bill.</p>
+                    <p className="text-gray-500 text-sm">You have no utility or harvest bills yet.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

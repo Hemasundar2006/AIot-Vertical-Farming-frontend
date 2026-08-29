@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Linkedin, Twitter, Mail, Award, Brain, Sprout, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 /* ── Animation Variants ── */
 const fadeInUp = {
@@ -30,18 +31,18 @@ const staggerFast = {
 };
 
 /* ── Team Member Card ── */
-const TeamCard = ({ member, index }) => (
+const TeamCard = ({ member }) => (
   <motion.div
     variants={scaleIn}
     whileHover={{ y: -8, transition: { duration: 0.3 } }}
     className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group relative"
   >
     {/* Image */}
-    <div className="relative w-full aspect-[4/3] overflow-hidden">
+    <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
       <img
-        src={member.image}
+        src={member.photoUrl || member.image || member.imageUrl}
         alt={member.name}
-        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
       />
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#213E20]/85 via-[#213E20]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
@@ -61,7 +62,7 @@ const TeamCard = ({ member, index }) => (
 
       {/* Role badge */}
       <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/30">
-        <span className="text-[10px] font-black uppercase tracking-widest text-white">{member.role.split(' ')[0]}</span>
+        <span className="text-sm md:text-[10px] font-black uppercase tracking-widest text-white">{((member.role || member.designation) || 'Member').split(' ')[0]}</span>
       </div>
     </div>
 
@@ -69,16 +70,16 @@ const TeamCard = ({ member, index }) => (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-xl bg-[#213E20]/8 flex items-center justify-center text-[#C49E40] group-hover:bg-[#213E20] transition-colors duration-300">
-          <member.icon size={17} />
+          {member.icon ? <member.icon size={17} /> : <Users size={17} />}
         </div>
         <div>
           <h3 className="font-extrabold text-gray-900 text-base leading-tight group-hover:text-[#1F3B21] transition-colors">
             {member.name}
           </h3>
-          <p className="text-[11px] text-[#C49E40] font-bold uppercase tracking-wider">{member.role}</p>
+          <p className="text-sm md:text-[11px] text-[#C49E40] font-bold uppercase tracking-wider">{member.role || member.designation}</p>
         </div>
       </div>
-      <p className="text-sm text-gray-500 font-medium leading-relaxed">{member.bio}</p>
+      <p className="text-sm text-gray-500 font-medium leading-relaxed">{member.bio || member.description}</p>
     </div>
   </motion.div>
 );
@@ -86,37 +87,34 @@ const TeamCard = ({ member, index }) => (
 /* ── Main Component ── */
 const Management = () => {
   const navigate = useNavigate();
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const TEAM_MEMBERS = [
-    {
-      name: 'Dr. Sarah Jenkins',
-      role: 'Chief Executive Officer',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
-      bio: 'Former VP of AgriTech at GlobalFarms. Sarah leads Agrinex with a vision to make precision farming universally accessible.',
-      icon: Award,
-    },
-    {
-      name: 'Marcus Chen',
-      role: 'Chief Technology Officer',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=80',
-      bio: 'AI researcher and architect. Marcus designed the core neural networks powering our crop and water prediction models.',
-      icon: Brain,
-    },
-    {
-      name: 'Elena Rodriguez',
-      role: 'Lead Agronomist',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=800&q=80',
-      bio: 'With 15+ years in vertical farming, Elena ensures our tech translates perfectly to real-world biological needs.',
-      icon: Sprout,
-    },
-    {
-      name: 'David Okafor',
-      role: 'Head of IoT Operations',
-      image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=800&q=80',
-      bio: 'Hardware engineering expert. David manages our global network of telemetry sensors and automated climate controls.',
-      icon: Users,
-    },
-  ];
+  useEffect(() => {
+    const fetchManagement = async () => {
+      try {
+        const token = localStorage.getItem('farm_token');
+        const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
+        
+        const response = await axios.get(`${API_URL}/admin/management`);
+        
+        const data = response.data.data || response.data;
+        if (Array.isArray(data)) {
+          console.log("Team Members Loaded from API:", data);
+          setTeamMembers(data);
+        } else {
+          console.warn("API did not return an array:", data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch management team:', error);
+        setTeamMembers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchManagement();
+  }, []);
 
   const STATS = [
     { value: '40+', label: 'Team Members' },
@@ -152,7 +150,7 @@ const Management = () => {
         >
           <motion.div
             variants={fadeInUp}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10"
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-sm md:text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10"
           >
             <Users size={13} className="text-[#C49E40]" /> Leadership
           </motion.div>
@@ -187,23 +185,25 @@ const Management = () => {
               className="flex flex-col items-center py-6 px-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
             >
               <span className="text-3xl font-black text-[#1F3B21]">{value}</span>
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-1 text-center">{label}</span>
+              <span className="text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mt-1 text-center">{label}</span>
             </motion.div>
           ))}
         </motion.div>
 
         {/* ── Team Grid — 2 cols on md, 4 on xl ── */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-24"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          variants={stagger}
-        >
-          {TEAM_MEMBERS.map((member, index) => (
-            <TeamCard key={member.name} member={member} index={index} />
-          ))}
-        </motion.div>
+        {!loading && (
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-24"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+          >
+            {teamMembers.map((member, index) => (
+              <TeamCard key={member._id || member.name} member={member} />
+            ))}
+          </motion.div>
+        )}
 
         {/* ── Values Strip ── */}
         <motion.div
@@ -242,7 +242,7 @@ const Management = () => {
           {/* Background texture image */}
           <div
             className="absolute inset-0 bg-cover bg-center opacity-10 rounded-[2rem]"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1530836369250-ef71a4eb5cce?w=1200&q=80')" }}
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80')" }}
           />
           {/* Animated border */}
           <div className="absolute inset-0 rounded-[2rem] animate-glow-border-dark pointer-events-none" />

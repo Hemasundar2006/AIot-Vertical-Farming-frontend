@@ -210,7 +210,7 @@ const Home = () => {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-amber-200/80 text-[#C49E40] text-xs font-bold tracking-widest uppercase shadow-sm">
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-amber-200/80 text-[#C49E40] text-sm md:text-xs font-bold tracking-widest uppercase shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#C49E40] animate-pulse"></span>
               Next-Gen Smart Agriculture
             </motion.div>
@@ -260,7 +260,7 @@ const Home = () => {
       <section id="ml-models-section" className="py-20 px-6 lg:px-12 bg-transparent border-y border-gray-100 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#213E20]/5 text-[#213E20] rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#213E20]/5 text-[#213E20] rounded-full text-sm md:text-xs font-bold uppercase tracking-widest mb-3">
               <Cpu size={14} className="text-[#C49E40]" /> Integrated Machine Learning Models
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -274,7 +274,7 @@ const Home = () => {
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
                 onClick={() => setActiveModelTab('vertical')}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeModelTab === 'vertical'
+                className={`px-5 py-2.5 rounded-xl text-sm md:text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeModelTab === 'vertical'
                   ? 'bg-[#213E20] text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
@@ -283,7 +283,7 @@ const Home = () => {
               </button>
               <button
                 onClick={() => setActiveModelTab('water')}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeModelTab === 'water'
+                className={`px-5 py-2.5 rounded-xl text-sm md:text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeModelTab === 'water'
                   ? 'bg-[#213E20] text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
@@ -300,9 +300,9 @@ const Home = () => {
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-200 gap-4 mb-6">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#C49E40]">Model 01</span>
+                    <span className="text-sm md:text-[11px] font-bold uppercase tracking-wider text-[#C49E40]">Model 01</span>
                     <h3 className="text-2xl font-bold text-gray-900">Vertical Crop Suitability Predictor</h3>
-                    <p className="text-xs text-gray-500 mt-1">Multi-variable neural model trained on NPK, microclimate, and photoperiod metrics.</p>
+                    <p className="text-sm md:text-xs text-gray-500 mt-1">Multi-variable neural model trained on NPK, microclimate, and photoperiod metrics.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -320,7 +320,7 @@ const Home = () => {
                       });
                       setVerticalPrediction(null);
                     }}
-                    className="text-xs text-gray-500 hover:text-gray-900 font-bold flex items-center gap-1 self-start sm:self-auto"
+                    className="text-sm md:text-xs text-gray-500 hover:text-gray-900 font-bold flex items-center gap-1 self-start sm:self-auto"
                   >
                     <RefreshCw size={12} /> Reset to Defaults
                   </button>
@@ -329,35 +329,35 @@ const Home = () => {
                 {/* Predefined Values Display / Form */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Nitrogen (N)</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Nitrogen (N)</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.N} mg/kg</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Phosphorus (P)</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Phosphorus (P)</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.P} mg/kg</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Potassium (K)</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Potassium (K)</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.K} mg/kg</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Temperature</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Temperature</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.temperature}°C</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Relative Humidity</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Relative Humidity</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.humidity}%</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Soil / Medium pH</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Soil / Medium pH</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.ph}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Medium Type</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Medium Type</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.soiltype}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Target Season</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Target Season</span>
                     <span className="text-lg font-black text-gray-900">{verticalForm.season}</span>
                   </div>
                 </div>
@@ -367,7 +367,7 @@ const Home = () => {
                   <button
                     onClick={handleVerticalPredict}
                     disabled={isPredictingVertical}
-                    className="w-full sm:w-auto px-8 py-3.5 bg-[#213E20] hover:bg-[#152a16] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-[#213E20] hover:bg-[#152a16] text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Sprout size={16} className={isPredictingVertical ? 'animate-spin text-[#C49E40]' : ''} />
                     {isPredictingVertical ? 'Evaluating Model...' : 'Run Vertical Crop Prediction'}
@@ -382,17 +382,17 @@ const Home = () => {
                     className="mt-6 p-6 rounded-2xl bg-[#213E20] shadow-md text-white"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 bg-white/10 text-white text-xs font-black uppercase tracking-wider rounded-md border border-white/20 flex items-center gap-1.5">
+                      <span className="px-3 py-1 bg-white/10 text-white text-sm md:text-xs font-black uppercase tracking-wider rounded-md border border-white/20 flex items-center gap-1.5">
                         <CheckCircle2 size={14} /> Optimal Vertical Crop Match
                       </span>
-                      <span className="text-xs font-bold text-gray-300">Confidence: {verticalPrediction.confidence}</span>
+                      <span className="text-sm md:text-xs font-bold text-gray-300">Confidence: {verticalPrediction.confidence}</span>
                     </div>
 
                     <div className="text-3xl font-serif font-black text-white mb-4 ">
                       {verticalPrediction.crop}
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-white/20 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-white/20 text-sm md:text-xs">
                       <div>
                         <span className="text-gray-300 block font-semibold">Expected Growth Cycle</span>
                         <span className="font-bold text-white text-sm">{verticalPrediction.harvestDays}</span>
@@ -418,9 +418,9 @@ const Home = () => {
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-200 gap-4 mb-6">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">Model 02</span>
+                    <span className="text-sm md:text-[11px] font-bold uppercase tracking-wider text-blue-600">Model 02</span>
                     <h3 className="text-2xl font-bold text-gray-900">Hydro-Requirement & Irrigation Engine</h3>
-                    <p className="text-xs text-gray-500 mt-1">Calculates precise volumetric water dosage based on ambient climate and crop species.</p>
+                    <p className="text-sm md:text-xs text-gray-500 mt-1">Calculates precise volumetric water dosage based on ambient climate and crop species.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -433,7 +433,7 @@ const Home = () => {
                       });
                       setWaterPrediction(null);
                     }}
-                    className="text-xs text-gray-500 hover:text-gray-900 font-bold flex items-center gap-1 self-start sm:self-auto"
+                    className="text-sm md:text-xs text-gray-500 hover:text-gray-900 font-bold flex items-center gap-1 self-start sm:self-auto"
                   >
                     <RefreshCw size={12} /> Reset to Defaults
                   </button>
@@ -442,23 +442,23 @@ const Home = () => {
                 {/* Predefined Values Display / Form */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Target Crop</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Target Crop</span>
                     <span className="text-lg font-black text-gray-900">{waterForm.crop}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Medium / Soil</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Medium / Soil</span>
                     <span className="text-lg font-black text-gray-900">{waterForm.soil}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Season</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Season</span>
                     <span className="text-lg font-black text-gray-900">{waterForm.season}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Month</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Month</span>
                     <span className="text-lg font-black text-gray-900">{waterForm.month}</span>
                   </div>
                   <div className="bg-white rounded-xl p-3 col-span-2 sm:col-span-1 animate-glow-border">
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Temperature</span>
+                    <span className="text-sm md:text-[10px] uppercase font-bold text-gray-400 block">Temperature</span>
                     <span className="text-lg font-black text-gray-900">{waterForm.temperature}°C</span>
                   </div>
                 </div>
@@ -468,7 +468,7 @@ const Home = () => {
                   <button
                     onClick={handleWaterPredict}
                     disabled={isPredictingWater}
-                    className="w-full sm:w-auto px-8 py-3.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Droplets size={16} className={isPredictingWater ? 'animate-spin' : ''} />
                     {isPredictingWater ? 'Computing Dosage...' : 'Predict Water Requirement'}
@@ -483,17 +483,17 @@ const Home = () => {
                     className="mt-6 p-6 rounded-2xl bg-blue-900 shadow-md text-white"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 bg-white/10 text-white text-xs font-black uppercase tracking-wider rounded-md border border-white/20 flex items-center gap-1.5">
+                      <span className="px-3 py-1 bg-white/10 text-white text-sm md:text-xs font-black uppercase tracking-wider rounded-md border border-white/20 flex items-center gap-1.5">
                         <CheckCircle2 size={14} /> Optimized Irrigation Plan
                       </span>
-                      <span className="text-xs font-bold text-blue-200">Target Moisture: {waterPrediction.moistureTarget}</span>
+                      <span className="text-sm md:text-xs font-bold text-blue-200">Target Moisture: {waterPrediction.moistureTarget}</span>
                     </div>
 
                     <div className="text-3xl font-serif font-black text-white mb-4">
                       {waterPrediction.amount}
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-white/20 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-white/20 text-sm md:text-xs">
                       <div>
                         <span className="text-blue-200 block font-semibold">Recommended Frequency</span>
                         <span className="font-bold text-white text-sm">{waterPrediction.frequency}</span>
@@ -524,7 +524,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto bg-gray-50/80 rounded-3xl p-6 sm:p-10 shadow-lg backdrop-blur-sm card-premium animate-glow-border">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
             <div>
-              <div className="flex items-center gap-2 text-[#C49E40] font-bold text-xs uppercase tracking-widest mb-2">
+              <div className="flex items-center gap-2 text-[#C49E40] font-bold text-sm md:text-xs uppercase tracking-widest mb-2">
                 <Sparkles size={16} /> Live Mandi Rates
               </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -554,10 +554,10 @@ const Home = () => {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider rounded-md border border-emerald-200/60">
+                    <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 text-sm md:text-[10px] font-extrabold uppercase tracking-wider rounded-md border border-emerald-200/60">
                       {rate.variety}
                     </span>
-                    <span className="text-[11px] font-bold text-gray-400">
+                    <span className="text-sm md:text-[11px] font-bold text-gray-400">
                       Grade: {rate.grade}
                     </span>
                   </div>
@@ -566,7 +566,7 @@ const Home = () => {
                     {rate.commodity}
                   </h3>
 
-                  <div className="text-xs text-gray-500 space-y-1 mb-5">
+                  <div className="text-sm md:text-xs text-gray-500 space-y-1 mb-5">
                     <div className="flex items-center gap-1.5 font-medium text-gray-700">
                       <Building2 size={13} className="text-[#213E20]" />
                       <span className="truncate">{rate.market}</span>
@@ -579,12 +579,12 @@ const Home = () => {
                 </div>
 
                 <div className="pt-3 border-t border-gray-200/60 flex items-baseline justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Modal Price</span>
+                  <span className="text-sm md:text-[10px] font-bold uppercase tracking-wider text-gray-400">Modal Price</span>
                   <div className="text-right">
                     <span className="text-xl font-black text-[#1F3B21]">
                       ₹{rate.modal_price.toLocaleString('en-IN')}
                     </span>
-                    <span className="text-[10px] text-gray-400 font-semibold block">/ Quintal</span>
+                    <span className="text-sm md:text-[10px] text-gray-400 font-semibold block">/ Quintal</span>
                   </div>
                 </div>
               </div>
@@ -604,7 +604,7 @@ const Home = () => {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.div variants={fadeInUp} className="text-[#C49E40] font-bold tracking-[0.2em] uppercase text-xs mb-3">
+            <motion.div variants={fadeInUp} className="text-[#C49E40] font-bold tracking-[0.2em] uppercase text-sm md:text-xs mb-3">
               Why Choose Agrinex
             </motion.div>
             <motion.h2 variants={fadeInUp} className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight text-gradient-animated">Precision Smart Farming</motion.h2>
@@ -662,7 +662,7 @@ const Home = () => {
           <motion.button
             variants={fadeInUp}
             onClick={() => navigate('/register')}
-            className="bg-[#C49E40] text-white font-bold py-4 px-10 rounded-full shadow-lg hover:bg-[#b38f3a] transition-all transform hover:-translate-y-0.5 tracking-wider uppercase text-xs"
+            className="bg-[#C49E40] text-white font-bold py-4 px-10 rounded-full shadow-lg hover:bg-[#b38f3a] transition-all transform hover:-translate-y-0.5 tracking-wider uppercase text-sm md:text-xs"
           >
             GET STARTED FREE
           </motion.button>
@@ -671,7 +671,7 @@ const Home = () => {
 
       {/* Footer */}
       < footer className="bg-transparent border-t border-gray-100 py-10" >
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 font-medium">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-sm md:text-xs text-gray-500 font-medium">
           <div>© 2026 Agrinex Smart Farming. All rights reserved.</div>
           <div className="flex gap-6">
             <span className="hover:text-[#C49E40] cursor-pointer transition-colors" onClick={() => navigate('/market-rates')}>Market Rates</span>
@@ -694,7 +694,7 @@ const FeatureCard = ({ icon: Icon, title, desc, variants }) => (
       <Icon size={24} />
     </div>
     <h3 className="font-bold text-gray-900 mb-2 text-lg tracking-tight group-hover:text-[#1F3B21] transition-colors">{title}</h3>
-    <p className="text-gray-500 text-xs leading-relaxed font-medium">{desc}</p>
+    <p className="text-gray-500 text-sm md:text-xs leading-relaxed font-medium">{desc}</p>
   </motion.div>
 );
 

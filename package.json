@@ -19,6 +19,8 @@
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.0",
     "hls.js": "^1.6.15",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.300.0",
     "openmeteo": "^1.2.3",
     "react": "^18.2.0",

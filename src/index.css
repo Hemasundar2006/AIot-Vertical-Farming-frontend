@@ -684,3 +684,37 @@ button {
 button:active:not(:disabled) {
   transform: scale(0.97);
 }
+
+/* ============================================= */
+/*  MOBILE RESPONSIVENESS FIXES                  */
+/* ============================================= */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom on focus by enforcing 16px font-size */
+  input, select, textarea {
+    font-size: 16px !important;
+    min-height: 44px; /* Ensure 44x44px minimum tap target */
+  }
+
+  /* Ensure touch targets for buttons are large enough on mobile */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Hide scrollbar for clean horizontal scrolling navigation menus */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Prevent tables from extremely squishing text on mobile screens */
+@media (max-width: 768px) {
+  .overflow-x-auto table th,
+  .overflow-x-auto table td {
+    white-space: nowrap;
+  }
+}

@@ -134,7 +134,7 @@ const MLPredictions = () => {
           { key: 'rainfall', label: 'Rainfall (mm)', icon: CloudRain, step: 1 },
         ].map(({ key, label, icon: Icon, step }) => (
           <div key={key}>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               {label}
             </label>
             <div className="relative">
@@ -156,7 +156,7 @@ const MLPredictions = () => {
       {/* Dropdowns */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Soil Type</label>
+          <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Soil Type</label>
           <select
             value={form.soiltype}
             onChange={(e) => updateFn('soiltype', e.target.value)}
@@ -166,7 +166,7 @@ const MLPredictions = () => {
           </select>
         </div>
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Season</label>
+          <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Season</label>
           <select
             value={form.season}
             onChange={(e) => updateFn('season', e.target.value)}
@@ -176,7 +176,7 @@ const MLPredictions = () => {
           </select>
         </div>
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Month Range</label>
+          <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Month Range</label>
           <select
             value={form.month}
             onChange={(e) => updateFn('month', e.target.value)}
@@ -193,35 +193,35 @@ const MLPredictions = () => {
   const renderWaterInputs = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Crop</label>
+        <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Crop</label>
         <select value={waterForm.crop} onChange={(e) => updateWater('crop', e.target.value)}
           className="w-full px-3.5 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-semibold text-gray-800 focus:outline-none transition-all">
           {WATER_CROPS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Soil Type</label>
+        <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Soil Type</label>
         <select value={waterForm.soil} onChange={(e) => updateWater('soil', e.target.value)}
           className="w-full px-3.5 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-semibold text-gray-800 focus:outline-none transition-all">
           {WATER_SOILS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Month</label>
+        <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Month</label>
         <select value={waterForm.month} onChange={(e) => updateWater('month', e.target.value)}
           className="w-full px-3.5 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-semibold text-gray-800 focus:outline-none transition-all">
           {WATER_MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Season</label>
+        <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Season</label>
         <select value={waterForm.season} onChange={(e) => updateWater('season', e.target.value)}
           className="w-full px-3.5 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-semibold text-gray-800 focus:outline-none transition-all">
           {WATER_SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Temperature (°C)</label>
+        <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Temperature (°C)</label>
         <select value={waterForm.temperature} onChange={(e) => updateWater('temperature', Number(e.target.value))}
           className="w-full px-3.5 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white border border-gray-200 focus:border-[#C49E40] rounded-xl text-sm font-semibold text-gray-800 focus:outline-none transition-all">
           {TEMPERATURES.map(t => <option key={t} value={t}>{t}°C</option>)}
@@ -258,10 +258,10 @@ const MLPredictions = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 bg-[#213E20] text-[#D9EFBD] text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-sm">
+            <span className="px-3 py-1 bg-[#213E20] text-[#D9EFBD] text-sm md:text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-sm">
               <Brain size={14} className="text-[#C49E40]" /> AIoT Intelligence
             </span>
-            <span className="text-xs text-gray-500 font-semibold">
+            <span className="text-sm md:text-xs text-gray-500 font-semibold">
               Machine Learning Models
             </span>
           </div>
@@ -278,46 +278,46 @@ const MLPredictions = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Models Active</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Models Active</span>
             <div className="p-2 bg-[#213E20]/5 rounded-lg text-[#213E20]">
               <Brain size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-[#1F3B21]">3</div>
-          <span className="text-[11px] text-gray-400 font-medium">Vertical, Horizontal, Water</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Vertical, Horizontal, Water</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Model Accuracy</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Model Accuracy</span>
             <div className="p-2 bg-[#C49E40]/10 rounded-lg text-[#C49E40]">
               <Target size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-[#C49E40]">98.5%</div>
-          <span className="text-[11px] text-gray-400 font-medium">Random Forest Regressor v2.1</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Random Forest Regressor v2.1</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Water Savings</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Water Savings</span>
             <div className="p-2 bg-blue-500/10 rounded-lg text-blue-700">
               <Droplets size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-blue-700">3,240 L</div>
-          <span className="text-[11px] text-gray-400 font-medium">Projected monthly saving</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Projected monthly saving</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Projected Yield</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Projected Yield</span>
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-700">
               <TrendingUp size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-emerald-700">125 kg</div>
-          <span className="text-[11px] text-emerald-700 font-bold">+12% vs last cycle</span>
+          <span className="text-sm md:text-[11px] text-emerald-700 font-bold">+12% vs last cycle</span>
         </div>
       </div>
 
@@ -325,14 +325,14 @@ const MLPredictions = () => {
       <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 border border-gray-200/80 shadow-md mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Select Prediction Model</span>
+            <span className="text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500">Select Prediction Model</span>
           </div>
           <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
             {MODEL_TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveModel(id)}
-                className={`px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                className={`px-4 py-2.5 rounded-lg text-sm md:text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
                   activeModel === id
                     ? 'bg-white text-[#1F3B21] shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
@@ -357,7 +357,7 @@ const MLPredictions = () => {
               </div>
               <div>
                 <h2 className="text-xl font-serif font-black text-[#1F3B21]">Vertical Farming Prediction</h2>
-                <p className="text-gray-500 text-xs font-medium">Predict the best crop for your vertical farm based on soil & climate data</p>
+                <p className="text-gray-500 text-sm md:text-xs font-medium">Predict the best crop for your vertical farm based on soil & climate data</p>
               </div>
             </div>
 
@@ -381,12 +381,12 @@ const MLPredictions = () => {
                   <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center">
                     <Target className="text-white" size={16} />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Predicted Crop (Vertical)</span>
+                  <span className="text-sm md:text-xs font-bold uppercase tracking-wider text-blue-700">Predicted Crop (Vertical)</span>
                 </div>
                 <div className="bg-white rounded-xl p-5 mb-3 border border-blue-100">
                   <p className="text-3xl font-black text-[#1F3B21] text-center">{verticalResult}</p>
                 </div>
-                <p className="text-xs text-gray-500 text-center font-medium">
+                <p className="text-sm md:text-xs text-gray-500 text-center font-medium">
                   N:{verticalForm.N} P:{verticalForm.P} K:{verticalForm.K} • {verticalForm.soiltype} soil • {verticalForm.season} • {verticalForm.month} • {verticalForm.temperature}°C
                 </p>
               </div>
@@ -403,7 +403,7 @@ const MLPredictions = () => {
               </div>
               <div>
                 <h2 className="text-xl font-serif font-black text-[#1F3B21]">Horizontal Farming Prediction</h2>
-                <p className="text-gray-500 text-xs font-medium">Predict the best crop for traditional open-field farming conditions</p>
+                <p className="text-gray-500 text-sm md:text-xs font-medium">Predict the best crop for traditional open-field farming conditions</p>
               </div>
             </div>
 
@@ -427,12 +427,12 @@ const MLPredictions = () => {
                   <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center">
                     <Target className="text-white" size={16} />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">Predicted Crop (Horizontal)</span>
+                  <span className="text-sm md:text-xs font-bold uppercase tracking-wider text-emerald-700">Predicted Crop (Horizontal)</span>
                 </div>
                 <div className="bg-white rounded-xl p-5 mb-3 border border-emerald-100">
                   <p className="text-3xl font-black text-[#1F3B21] text-center">{horizontalResult}</p>
                 </div>
-                <p className="text-xs text-gray-500 text-center font-medium">
+                <p className="text-sm md:text-xs text-gray-500 text-center font-medium">
                   N:{horizontalForm.N} P:{horizontalForm.P} K:{horizontalForm.K} • {horizontalForm.soiltype} soil • {horizontalForm.season} • {horizontalForm.month} • {horizontalForm.temperature}°C
                 </p>
               </div>
@@ -449,7 +449,7 @@ const MLPredictions = () => {
               </div>
               <div>
                 <h2 className="text-xl font-serif font-black text-[#1F3B21]">Water Requirement Prediction</h2>
-                <p className="text-gray-500 text-xs font-medium">Get AI-powered water requirement predictions for your crops</p>
+                <p className="text-gray-500 text-sm md:text-xs font-medium">Get AI-powered water requirement predictions for your crops</p>
               </div>
             </div>
 
@@ -473,7 +473,7 @@ const MLPredictions = () => {
                   <div className="w-9 h-9 rounded-full bg-cyan-600 flex items-center justify-center">
                     <Droplets className="text-white" size={16} />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-cyan-700">Water Prediction Result</span>
+                  <span className="text-sm md:text-xs font-bold uppercase tracking-wider text-cyan-700">Water Prediction Result</span>
                 </div>
                 <div className="bg-white rounded-xl p-5 mb-4 border border-cyan-100">
                   <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">
@@ -481,7 +481,7 @@ const MLPredictions = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-200/70">
-                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Input Parameters</p>
+                  <p className="text-sm md:text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Input Parameters</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
                     <div><span className="font-semibold text-gray-600">Crop:</span> <span className="text-gray-800">{waterPrediction.input?.crop}</span></div>
                     <div><span className="font-semibold text-gray-600">Soil:</span> <span className="text-gray-800">{waterPrediction.input?.soil}</span></div>
@@ -532,11 +532,11 @@ const MLPredictions = () => {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900 text-sm">{title}</h3>
-                <span className="text-[10px] font-mono text-gray-400">/api/crop/{tag}</span>
+                <span className="text-sm md:text-[10px] font-mono text-gray-400">/api/crop/{tag}</span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 font-medium leading-relaxed">{desc}</p>
-            <div className="mt-3 flex items-center gap-1 text-xs font-bold text-[#C49E40] group-hover:text-[#b38f3a] transition-colors">
+            <p className="text-sm md:text-xs text-gray-500 font-medium leading-relaxed">{desc}</p>
+            <div className="mt-3 flex items-center gap-1 text-sm md:text-xs font-bold text-[#C49E40] group-hover:text-[#b38f3a] transition-colors">
               Use this model <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>

@@ -364,10 +364,10 @@ const MarketRates = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 bg-[#213E20] text-[#D9EFBD] text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-sm">
+            <span className="px-3 py-1 bg-[#213E20] text-[#D9EFBD] text-sm md:text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 shadow-sm">
               <Sprout size={14} className="text-[#C49E40]" /> Govt. Mandi Data
             </span>
-            <span className="text-xs text-gray-500 font-semibold">
+            <span className="text-sm md:text-xs text-gray-500 font-semibold">
               Ministry of Agriculture & Farmers Welfare
             </span>
           </div>
@@ -384,7 +384,7 @@ const MarketRates = () => {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1F3B21] font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:shadow transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1F3B21] font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-sm hover:shadow transition-all disabled:opacity-50"
           >
             <RefreshCw size={15} className={`${loading ? 'animate-spin text-[#C49E40]' : ''}`} />
             {loading ? 'Updating...' : 'Sync Rates'}
@@ -392,7 +392,7 @@ const MarketRates = () => {
 
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#C49E40] hover:bg-[#b38f3a] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#C49E40] hover:bg-[#b38f3a] text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
           >
             <Download size={15} />
             Export CSV
@@ -404,7 +404,7 @@ const MarketRates = () => {
       {isFallback && (
         <div className="mb-6 p-4 rounded-xl bg-amber-50/90 border border-amber-200/80 backdrop-blur-sm flex items-start gap-3 text-amber-900 shadow-sm">
           <AlertCircle className="text-[#C49E40] shrink-0 mt-0.5" size={18} />
-          <div className="text-xs">
+          <div className="text-sm md:text-xs">
             <p className="font-bold">Displaying verified high-precision Mandi Price records</p>
             <p className="text-gray-600 mt-0.5">
               Live external API sync may experience CORS or rate limits on browser requests. Showing active standard mandi prices across states.
@@ -417,29 +417,29 @@ const MarketRates = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Filtered Items</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Filtered Items</span>
             <div className="p-2 bg-[#213E20]/5 rounded-lg text-[#213E20]">
               <Sprout size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-[#1F3B21]">{filteredRecords.length}</div>
-          <span className="text-[11px] text-gray-400 font-medium">Out of {totalCount} total commodities</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Out of {totalCount} total commodities</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Avg Modal Price</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Avg Modal Price</span>
             <div className="p-2 bg-[#C49E40]/10 rounded-lg text-[#C49E40]">
               <IndianRupee size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-[#C49E40]">₹{stats.avgPrice.toLocaleString('en-IN')}</div>
-          <span className="text-[11px] text-gray-400 font-medium">Per quintal average</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Per quintal average</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Highest Commodity</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Highest Commodity</span>
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-700">
               <TrendingUp size={18} />
             </div>
@@ -447,18 +447,18 @@ const MarketRates = () => {
           <div className="text-xl font-black text-gray-900 truncate" title={stats.topCommodity}>
             {stats.topCommodity}
           </div>
-          <span className="text-[11px] text-emerald-700 font-bold">₹{stats.maxPrice.toLocaleString('en-IN')} / Qtl</span>
+          <span className="text-sm md:text-[11px] text-emerald-700 font-bold">₹{stats.maxPrice.toLocaleString('en-IN')} / Qtl</span>
         </div>
 
         <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-gray-200/70 shadow-sm">
           <div className="flex items-center justify-between text-gray-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Active Mandis</span>
+            <span className="text-sm md:text-xs font-bold uppercase tracking-wider">Active Mandis</span>
             <div className="p-2 bg-blue-500/10 rounded-lg text-blue-700">
               <Building2 size={18} />
             </div>
           </div>
           <div className="text-2xl font-black text-gray-900">{stats.uniqueMarkets}</div>
-          <span className="text-[11px] text-gray-400 font-medium">Across selected states</span>
+          <span className="text-sm md:text-[11px] text-gray-400 font-medium">Across selected states</span>
         </div>
       </div>
 
@@ -467,7 +467,7 @@ const MarketRates = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Search Input */}
           <div className="relative">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               Search Commodity / Mandi
             </label>
             <div className="relative">
@@ -484,7 +484,7 @@ const MarketRates = () => {
 
           {/* State Selector */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               State
             </label>
             <select
@@ -505,7 +505,7 @@ const MarketRates = () => {
 
           {/* District Selector */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               District
             </label>
             <select
@@ -523,7 +523,7 @@ const MarketRates = () => {
 
           {/* Sort By */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               Sort By
             </label>
             <select
@@ -542,12 +542,12 @@ const MarketRates = () => {
         {/* View Toggle and Quick Tags */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-500 mr-1">Quick Select:</span>
+            <span className="text-sm md:text-xs font-bold text-gray-500 mr-1">Quick Select:</span>
             {['Maize', 'Tomato', 'Rubber', 'Wheat', 'Onion'].map(crop => (
               <button
                 key={crop}
                 onClick={() => setSearchTerm(crop === searchTerm ? '' : crop)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded-full text-sm md:text-xs font-bold transition-all ${
                   searchTerm === crop 
                     ? 'bg-[#213E20] text-white shadow-sm' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -563,7 +563,7 @@ const MarketRates = () => {
                   setSelectedState('ALL');
                   setSelectedDistrict('ALL');
                 }}
-                className="text-xs text-red-600 font-bold hover:underline ml-2"
+                className="text-sm md:text-xs text-red-600 font-bold hover:underline ml-2"
               >
                 Clear all filters
               </button>
@@ -573,7 +573,7 @@ const MarketRates = () => {
           <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`p-2 rounded-lg text-sm md:text-xs font-bold flex items-center gap-1.5 transition-all ${
                 viewMode === 'grid' 
                   ? 'bg-white text-gray-900 shadow-sm' 
                   : 'text-gray-500 hover:text-gray-900'
@@ -584,7 +584,7 @@ const MarketRates = () => {
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`p-2 rounded-lg text-sm md:text-xs font-bold flex items-center gap-1.5 transition-all ${
                 viewMode === 'table' 
                   ? 'bg-white text-gray-900 shadow-sm' 
                   : 'text-gray-500 hover:text-gray-900'
@@ -619,7 +619,7 @@ const MarketRates = () => {
               setSelectedState('ALL');
               setSelectedDistrict('ALL');
             }}
-            className="mt-5 px-5 py-2.5 bg-[#213E20] text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#152914] transition-all"
+            className="mt-5 px-5 py-2.5 bg-[#213E20] text-white font-bold text-sm md:text-xs uppercase tracking-wider rounded-xl hover:bg-[#152914] transition-all"
           >
             Reset Filters
           </button>
@@ -645,16 +645,16 @@ const MarketRates = () => {
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase tracking-wider rounded-md border border-emerald-200/60">
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-sm md:text-[10px] font-black uppercase tracking-wider rounded-md border border-emerald-200/60">
                         {item.variety || 'Standard'}
                       </span>
                       {item.grade && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm md:text-[10px] font-bold uppercase tracking-wider rounded-md">
                           Grade: {item.grade}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-gray-400">
+                    <div className="flex items-center gap-1 text-sm md:text-[11px] font-bold text-gray-400">
                       <Calendar size={12} />
                       <span>{item.arrival_date || 'Today'}</span>
                     </div>
@@ -666,7 +666,7 @@ const MarketRates = () => {
                   </h3>
 
                   {/* Market & Location */}
-                  <div className="space-y-1 mb-6 text-xs text-gray-600">
+                  <div className="space-y-1 mb-6 text-sm md:text-xs text-gray-600">
                     <div className="flex items-center gap-1.5 font-semibold text-gray-800">
                       <Building2 size={14} className="text-[#213E20]" />
                       <span>{item.market}</span>
@@ -681,18 +681,18 @@ const MarketRates = () => {
                 {/* Price Display Section */}
                 <div className="bg-gray-50/90 rounded-xl p-4 border border-gray-100">
                   <div className="flex items-baseline justify-between mb-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Modal Price</span>
+                    <span className="text-sm md:text-[11px] font-bold uppercase tracking-wider text-gray-500">Modal Price</span>
                     <div className="text-right">
                       <span className="text-2xl font-black text-[#1F3B21]">
                         ₹{modal.toLocaleString('en-IN')}
                       </span>
-                      <span className="text-[10px] text-gray-500 font-bold block">/ Quintal</span>
+                      <span className="text-sm md:text-[10px] text-gray-500 font-bold block">/ Quintal</span>
                     </div>
                   </div>
 
                   {/* Price Range Visualizer */}
                   <div className="space-y-1.5 pt-2 border-t border-gray-200/60">
-                    <div className="flex justify-between text-[11px] font-semibold text-gray-500">
+                    <div className="flex justify-between text-sm md:text-[11px] font-semibold text-gray-500">
                       <span>Min: <b className="text-gray-800">₹{min.toLocaleString('en-IN')}</b></span>
                       <span>Max: <b className="text-gray-800">₹{max.toLocaleString('en-IN')}</b></span>
                     </div>
@@ -715,7 +715,7 @@ const MarketRates = () => {
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#213E20] text-white text-[11px] uppercase tracking-wider font-bold">
+              <thead className="bg-[#213E20] text-white text-sm md:text-[11px] uppercase tracking-wider font-bold">
                 <tr>
                   <th className="py-4 px-5">Commodity</th>
                   <th className="py-4 px-5">Variety / Grade</th>
@@ -734,17 +734,17 @@ const MarketRates = () => {
                       {item.commodity}
                     </td>
                     <td className="py-4 px-5">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-800 font-bold mr-1">
+                      <span className="px-2 py-0.5 bg-gray-100 rounded text-sm md:text-xs text-gray-800 font-bold mr-1">
                         {item.variety || 'Standard'}
                       </span>
                       {item.grade && (
-                        <span className="text-[11px] text-gray-500">({item.grade})</span>
+                        <span className="text-sm md:text-[11px] text-gray-500">({item.grade})</span>
                       )}
                     </td>
                     <td className="py-4 px-5 font-semibold text-gray-800">
                       {item.market}
                     </td>
-                    <td className="py-4 px-5 text-xs text-gray-600">
+                    <td className="py-4 px-5 text-sm md:text-xs text-gray-600">
                       {item.district}, <span className="font-bold text-gray-800">{item.state}</span>
                     </td>
                     <td className="py-4 px-5 text-right text-gray-600">
@@ -756,7 +756,7 @@ const MarketRates = () => {
                     <td className="py-4 px-5 text-right font-black text-base text-[#1F3B21]">
                       ₹{Number(item.modal_price || 0).toLocaleString('en-IN')}
                     </td>
-                    <td className="py-4 px-5 text-center text-xs text-gray-500 font-semibold">
+                    <td className="py-4 px-5 text-center text-sm md:text-xs text-gray-500 font-semibold">
                       {item.arrival_date || 'Today'}
                     </td>
                   </tr>
@@ -770,7 +770,7 @@ const MarketRates = () => {
       {/* Pagination Controls */}
       {filteredRecords.length > itemsPerPage && (
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-gray-200/80 shadow-sm">
-          <div className="text-xs text-gray-600 font-medium">
+          <div className="text-sm md:text-xs text-gray-600 font-medium">
             Showing <span className="font-bold text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
             <span className="font-bold text-gray-900">
               {Math.min(currentPage * itemsPerPage, filteredRecords.length)}
@@ -799,7 +799,7 @@ const MarketRates = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
+                    className={`w-9 h-9 rounded-xl text-sm md:text-xs font-bold transition-all ${
                       currentPage === pageNum
                         ? 'bg-[#213E20] text-white shadow-sm'
                         : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'

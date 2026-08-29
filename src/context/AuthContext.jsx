@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
-const API_URL = 'https://aiot-vertical-farming-backend.onrender.com/api/auth';
+const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { user, token, message } = response.data;
 
       setUser(user);
@@ -45,15 +45,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, phone, role, zoneId) => {
     try {
-      // Defaulting to "Farmer" role as per requirements. 
-      // Could accept role as argument if UI supports it.
-      const response = await axios.post(`${API_URL}/register`, { 
+      const response = await axios.post(`${API_URL}/auth/register`, { 
         name, 
         email, 
         password,
-        role: "Farmer" 
+        phone,
+        role,
+        zoneId
       });
       
       const { user, token, message } = response.data;

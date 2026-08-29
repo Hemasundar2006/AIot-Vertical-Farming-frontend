@@ -25,7 +25,7 @@ const Billing = () => {
                         <td className="py-4 px-4 text-amber-800">Premium API Access</td>
                         <td className="py-4 px-4 font-semibold text-amber-900">$49.99</td>
                         <td className="py-4 px-4">
-                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Paid</span>
+                            <span className="px-2 py-1 bg-green-100 text-green-800 text-sm md:text-xs rounded-full">Paid</span>
                         </td>
                         <td className="py-4 px-4">
                             <button className="text-amber-600 hover:text-amber-900 underline text-sm">Download Invoice</button>

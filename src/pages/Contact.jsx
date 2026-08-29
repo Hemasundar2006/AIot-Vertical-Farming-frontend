@@ -218,7 +218,7 @@ const Contact = () => {
             </div>
             
             <div className="mt-6 text-center pt-4 border-t border-earth-200">
-                <p className="text-xs text-earth-600 mb-4">
+                <p className="text-sm md:text-xs text-earth-600 mb-4">
                     By contacting us, you agree to our <span className="text-earth-700 font-medium cursor-pointer">Terms of Service</span> and <span className="text-earth-700 font-medium cursor-pointer">Privacy Policy</span>.
                 </p>
                 <img 
@@ -236,7 +236,7 @@ const Contact = () => {
       
       {/* Simple Footer Links */}
       <div className="fixed bottom-4 left-0 w-full text-center pointer-events-none">
-          <div className="inline-flex gap-4 text-xs text-earth-600 pointer-events-auto bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-earth-200 shadow-sm">
+          <div className="inline-flex gap-4 text-sm md:text-xs text-earth-600 pointer-events-auto bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-earth-200 shadow-sm">
              <span>Privacy Policy</span>
              <span>|</span>
              <span>Terms of Service</span>

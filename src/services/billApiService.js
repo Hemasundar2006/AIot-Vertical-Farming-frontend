@@ -1,66 +1,54 @@
-const BILL_API_BASE_URL = import.meta.env.VITE_BILL_API_URL || 'http://localhost:8000';
+const BILL_API_BASE_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('farm_token');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
 };
 
-export const createUtilityBill = async (data) => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/utility`, {
+// Admins use this to upload a new bill (utility or harvest)
+export const createBill = async (data) => {
+    const userStr = localStorage.getItem('farm_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const endpoint = user?.role === 'admin' ? '/admin/bills' : '/user/bills';
+
+    const response = await fetch(`${BILL_API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data),
     });
     if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || 'Failed to create utility bill');
+        throw new Error(err.message || 'Failed to create bill');
     }
     return response.json();
 };
 
-export const getUtilityBills = async () => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/utility`, {
+// Users use this to fetch their own bills
+// Admins can use this if we modify it to hit /admin/bills, but for now we'll fetch user bills
+export const getBills = async () => {
+    // We check role from local storage to decide which endpoint to hit
+    const userStr = localStorage.getItem('farm_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const endpoint = user?.role === 'admin' ? '/admin/bills' : '/user/bills';
+
+    const response = await fetch(`${BILL_API_BASE_URL}${endpoint}`, {
         headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch utility bills');
+    if (!response.ok) throw new Error('Failed to fetch bills');
     return response.json();
 };
 
-export const createHarvestBill = async (data) => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/harvest`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || 'Failed to create harvest bill');
-    }
-    return response.json();
-};
-
-export const getHarvestBills = async () => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/harvest`, {
-        headers: getHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to fetch harvest bills');
-    return response.json();
-};
-
+// This endpoint doesn't exist yet, but was in original code. Returning empty array for safety.
 export const getUnits = async () => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/units`, {
-        headers: getHeaders(),
-    });
-    if (!response.ok) throw new Error('Failed to fetch units');
-    return response.json();
+    return [];
 };
 
-// Generic function to handle PDF download
-export const downloadBillPdf = async (type, id, invoiceNumber) => {
-    const response = await fetch(`${BILL_API_BASE_URL}/api/bills/${type}/${id}/pdf`, {
+export const downloadBillPdf = async (id, invoiceNumber) => {
+    // Users download their own bills
+    const response = await fetch(`${BILL_API_BASE_URL}/user/bills/${id}/download`, {
         headers: getHeaders(),
     });
     
@@ -73,6 +61,6 @@ export const downloadBillPdf = async (type, id, invoiceNumber) => {
     a.download = `${invoiceNumber || 'bill'}.pdf`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 };

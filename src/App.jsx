@@ -17,9 +17,8 @@ import ChatBot from './pages/ChatBot';
 import { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
-
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
+import MyFarm from './pages/MyFarm.jsx';
 import SensorData from './pages/SensorData';
 import ImageDetection from './pages/ImageDetection';
 import ZoneControl from './pages/ZoneControl';
@@ -28,16 +27,17 @@ import Video360 from './pages/Video360';
 import WeatherMonitoring from './pages/WeatherMonitoring';
 import MarketPrediction from './pages/MarketPrediction';
 import BillDashboard from './pages/BillDashboard';
-import UtilityBillForm from './pages/UtilityBillForm';
-import HarvestBillForm from './pages/HarvestBillForm';
 import MarketRates from './pages/MarketRates';
 import About from './pages/About';
 import Management from './pages/Management';
 import Projects from './pages/Projects';
+import Notifications from './pages/Notifications';
 import PlantAnalyzer from './pages/PlantAnalyzer';
-
-
-// ... (other imports remain, but reusing existing block structure to minimize diff)
+import AdminDashboard from './pages/AdminDashboard'; // NEW IMPORT
+import UtilityBillForm from './pages/UtilityBillForm';
+import HarvestBillForm from './pages/HarvestBillForm';
+import UnifiedChat from './components/UnifiedChat';
+import { MessageSquare, X } from 'lucide-react';
 
 // Private Route Wrapper
 const PrivateRoute = ({ children }) => {
@@ -47,6 +47,14 @@ const PrivateRoute = ({ children }) => {
 };
 
 const MainLayout = ({ children }) => {
+    const [isChatOpen, setIsChatOpen] = React.useState(false);
+    
+    React.useEffect(() => {
+        const toggleChat = () => setIsChatOpen(prev => !prev);
+        window.addEventListener('toggle-chatbot', toggleChat);
+        return () => window.removeEventListener('toggle-chatbot', toggleChat);
+    }, []);
+
     return (
         <div className="min-h-screen text-gray-900 relative bg-agri-light overflow-x-hidden">
             {/* Floating background orbs */}
@@ -75,10 +83,23 @@ const MainLayout = ({ children }) => {
                         </p>
                         <div className="absolute -bottom-2 right-4 w-4 h-4 bg-white border-b border-r border-gray-200 transform rotate-45"></div>
                     </div>
-                    <a href="/chatbot" className="bg-[#C49E40] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:bg-[#b38f3a] hover:-translate-y-1 transition-all flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
-                    </a>
+                    <button onClick={() => setIsChatOpen(!isChatOpen)} className="bg-[#C49E40] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:bg-[#b38f3a] hover:-translate-y-1 transition-all flex items-center justify-center">
+                        <MessageSquare size={24} />
+                    </button>
                 </div>
+                
+                {/* Chat Modal */}
+                {isChatOpen && (
+                    <div className="fixed bottom-24 right-6 w-[calc(100vw-48px)] max-w-md h-[600px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl border border-gray-200 z-[60] flex flex-col overflow-hidden animate-slide-in-up">
+                         <div className="bg-[#1F3B21] text-white p-4 flex justify-between items-center shadow-md z-10">
+                             <h3 className="font-bold flex items-center gap-2"><MessageSquare size={18} /> Agrinex Assistant</h3>
+                             <button onClick={() => setIsChatOpen(false)} className="text-white hover:text-[#C49E40] transition-colors p-1"><X size={20} /></button>
+                         </div>
+                         <div className="flex-1 overflow-hidden relative bg-[#f0f7f4]">
+                             <UnifiedChat />
+                         </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -118,8 +139,7 @@ function App() {
                 <Route path="/management" element={<MainLayout><Management /></MainLayout>} />
                 <Route path="/projects" element={<MainLayout><Projects /></MainLayout>} />
 
-                {/* Private Dashboard */}
-                <Route path="/dashboard" element={<PrivateRoute><MainLayout><Dashboard /></MainLayout></PrivateRoute>} />
+                {/* Private Dashboard Removed */}
                 
                 <Route path="/predictions" element={<PrivateRoute><MainLayout><MLPredictions /></MainLayout></PrivateRoute>} />
                 <Route path="/smart-prediction" element={<PrivateRoute><MainLayout><SmartFarmingPrediction /></MainLayout></PrivateRoute>} />
@@ -128,7 +148,6 @@ function App() {
                 <Route path="/sensor-data" element={<PrivateRoute><MainLayout><SensorData /></MainLayout></PrivateRoute>} />
                 <Route path="/image-detection" element={<MainLayout><ImageDetection /></MainLayout>} />
                 <Route path="/plant-analyzer" element={<PrivateRoute><MainLayout><PlantAnalyzer /></MainLayout></PrivateRoute>} />
-                <Route path="/chatbot" element={<MainLayout><ChatBot /></MainLayout>} />
                 <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
                 <Route path="/zone-control" element={<PrivateRoute><MainLayout><ZoneControl /></MainLayout></PrivateRoute>} />
                 <Route path="/data-download" element={<PrivateRoute><MainLayout><DataDownload /></MainLayout></PrivateRoute>} />
@@ -139,6 +158,11 @@ function App() {
                 <Route path="/bills/utility/new" element={<PrivateRoute><MainLayout><UtilityBillForm /></MainLayout></PrivateRoute>} />
                 <Route path="/bills/harvest/new" element={<PrivateRoute><MainLayout><HarvestBillForm /></MainLayout></PrivateRoute>} />
                 <Route path="/market-rates" element={<MainLayout><MarketRates /></MainLayout>} />
+                <Route path="/notifications" element={<PrivateRoute><MainLayout><Notifications /></MainLayout></PrivateRoute>} />
+                <Route path="/my-farm" element={<PrivateRoute><MainLayout><MyFarm /></MainLayout></PrivateRoute>} />
+
+                {/* NEW ADMIN ROUTE */}
+                <Route path="/admin/*" element={<PrivateRoute><MainLayout><AdminDashboard /></MainLayout></PrivateRoute>} />
             </Routes>
 
             <Toaster 
@@ -170,3 +194,6 @@ function App() {
 }
 
 export default App;
+
+
+

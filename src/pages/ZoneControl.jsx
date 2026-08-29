@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useFarm } from '../context/FarmContext';
+import { useAuth } from '../context/AuthContext';
+import { filterLayersForUser } from '../utils/zoneUtils';
 import { Power, PowerOff, Zap, Droplets } from 'lucide-react';
 
 const ZoneControl = () => {
     const { layers, controlZoneManual } = useFarm();
+    const { user } = useAuth();
     const [loadingZone, setLoadingZone] = useState(null);
+    
+    const filteredLayers = filterLayersForUser(layers, user);
 
     const handleControl = async (zoneId, turnOn) => {
         setLoadingZone(zoneId);
@@ -32,7 +37,7 @@ const ZoneControl = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {Object.values(layers).map((zone) => {
+                    {filteredLayers.map((zone) => {
                         const isMotorOn = zone.motor === 'ON';
                         
                         return (
@@ -44,11 +49,11 @@ const ZoneControl = () => {
                                 <p className="text-sm text-slate-500 mb-6">Zone {zone.id}</p>
                                 
                                 <div className="flex items-center gap-2 mb-6">
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-2 ${isMotorOn ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                    <div className={`px-3 py-1 rounded-full text-sm md:text-xs font-bold border flex items-center gap-2 ${isMotorOn ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                         <div className={`w-2 h-2 rounded-full ${isMotorOn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                                         MOTOR {zone.motor}
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${
+                                    <div className={`px-3 py-1 rounded-full text-sm md:text-xs font-bold border flex items-center gap-1 ${
                                         zone.moisture > 70 
                                             ? 'bg-blue-50 text-blue-600 border-blue-200' 
                                             : zone.moisture < 30 
@@ -73,7 +78,7 @@ const ZoneControl = () => {
                                         <div className="flex items-center gap-1 text-sm">
                                             <Power size={16} /> ON
                                         </div>
-                                        <span className="text-[10px] opacity-75 font-normal">&gt; 70% (Motor OFF)</span>
+                                        <span className="text-sm md:text-[10px] opacity-75 font-normal">&gt; 70% (Motor OFF)</span>
                                     </button>
                                     <button 
                                         onClick={() => handleControl(zone.id, false)}
@@ -88,7 +93,7 @@ const ZoneControl = () => {
                                         <div className="flex items-center gap-1 text-sm">
                                             <PowerOff size={16} /> OFF
                                         </div>
-                                        <span className="text-[10px] opacity-75 font-normal">&lt; 30% (Motor ON)</span>
+                                        <span className="text-sm md:text-[10px] opacity-75 font-normal">&lt; 30% (Motor ON)</span>
                                     </button>
                                 </div>
                             </div>

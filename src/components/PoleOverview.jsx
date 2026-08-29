@@ -2,6 +2,8 @@ import React from 'react';
 import { useFarm } from '../context/FarmContext';
 import { Thermometer, Droplets, Wind, Sprout, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { filterLayersForUser } from '../utils/zoneUtils';
 
 const LayerCard = ({ layer, index, isConnected }) => {
   const isMotorOn = isConnected && (layer.motor === 'ON' || layer.pumpInfo?.status);
@@ -33,7 +35,7 @@ const LayerCard = ({ layer, index, isConnected }) => {
             </p>
           </div>
         </div>
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${
+        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm md:text-xs font-medium border ${
           isMotorOn 
             ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 animate-pulse' 
             : 'bg-slate-500/20 text-slate-400 border-slate-500/30'
@@ -76,7 +78,7 @@ const LayerCard = ({ layer, index, isConnected }) => {
       
       {/* Progress Bar for Moisture */}
       <div className="mt-4">
-        <div className="flex justify-between text-xs text-slate-400 mb-1">
+        <div className="flex justify-between text-sm md:text-xs text-slate-400 mb-1">
             <span>Soil Moisture</span>
             <span>{moistDisplay}</span>
         </div>
@@ -96,13 +98,16 @@ const LayerCard = ({ layer, index, isConnected }) => {
 const StatItem = ({ icon, label, value, color, bg }) => (
   <div className={`flex flex-col items-center justify-center p-3 rounded-xl ${bg} border border-white/5`}>
     <div className={`mb-1 ${color}`}>{icon}</div>
-    <span className="text-xs text-slate-400 mb-1">{label}</span>
+    <span className="text-sm md:text-xs text-slate-400 mb-1">{label}</span>
     <span className="text-sm font-bold text-white">{value}</span>
   </div>
 );
 
 const PoleOverview = () => {
   const { layers, isConnected } = useFarm();
+  const { user } = useAuth();
+  
+  const filteredLayers = filterLayersForUser(layers, user);
 
   return (
     <div className="space-y-6">
@@ -111,7 +116,7 @@ const PoleOverview = () => {
         Pole Overview
       </h2>
       <div className="flex flex-col gap-4">
-        {Object.values(layers).map((layer, index) => (
+        {filteredLayers.map((layer, index) => (
           <LayerCard key={layer.id} layer={layer} index={index} isConnected={isConnected} />
         ))}
       </div>

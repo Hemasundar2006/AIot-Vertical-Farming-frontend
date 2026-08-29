@@ -14,6 +14,7 @@ import {
 import { Line, Bar } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 import { fetchDailyData, fetchMonthlyData } from '../services/sensorApiService';
+import { useAuth } from '../context/AuthContext';
 import { Calendar, RefreshCw, TrendingUp, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -41,8 +42,23 @@ const getSoilName = (zoneKey) => {
 };
 
 const SensorGraphs = ({ initialZone = null }) => {
+  const { user } = useAuth();
+  const availableZones = useMemo(() => {
+    if (user && user.role === 'farmer' && user.zoneId) {
+      const zid = String(user.zoneId).toLowerCase();
+      let key = zid;
+      if (!key.includes('zone')) key = `zone${key}`;
+      return [{ value: key, label: getSoilName(key) }];
+    }
+    return [
+      { value: 'zone1', label: 'Black Soil' },
+      { value: 'zone2', label: 'Red Soil' },
+      { value: 'zone3', label: 'Sand' }
+    ];
+  }, [user]);
+
   const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'monthly'
-  const [selectedZone, setSelectedZone] = useState(initialZone || 'zone1');
+  const [selectedZone, setSelectedZone] = useState(initialZone || availableZones[0].value);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
@@ -53,12 +69,14 @@ const SensorGraphs = ({ initialZone = null }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Update selected zone when initialZone prop changes
+  // Update selected zone when initialZone prop changes or availableZones changes
   useEffect(() => {
     if (initialZone) {
       setSelectedZone(initialZone);
+    } else if (availableZones.length === 1) {
+      setSelectedZone(availableZones[0].value);
     }
-  }, [initialZone]);
+  }, [initialZone, availableZones]);
 
   // Fetch daily data
   const fetchDailyDataHandler = useCallback(async () => {
@@ -412,10 +430,11 @@ const SensorGraphs = ({ initialZone = null }) => {
               value={selectedZone}
               onChange={(e) => setSelectedZone(e.target.value)}
               className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              disabled={availableZones.length <= 1}
             >
-              <option value="zone1">Black Soil</option>
-              <option value="zone2">Red Soil</option>
-              <option value="zone3">Sand</option>
+              {availableZones.map((zone) => (
+                <option key={zone.value} value={zone.value}>{zone.label}</option>
+              ))}
             </select>
           </div>
 
@@ -508,19 +527,19 @@ const SensorGraphs = ({ initialZone = null }) => {
           {dailyData?.summary && (
             <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-200">
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Temperature</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Temperature</p>
                 <p className="text-xl font-bold text-orange-600">{dailyData.summary.avgTemp.toFixed(2)}°C</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Humidity</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Humidity</p>
                 <p className="text-xl font-bold text-blue-600">{dailyData.summary.avgHum.toFixed(2)}%</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Soil</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Avg Soil</p>
                 <p className="text-xl font-bold text-emerald-600">{dailyData.summary.avgSoil.toFixed(2)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Readings</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Readings</p>
                 <p className="text-xl font-bold text-slate-700">{dailyData.summary.totalReadings}</p>
               </div>
             </div>
@@ -540,27 +559,27 @@ const SensorGraphs = ({ initialZone = null }) => {
           {monthlyData?.summary && (
             <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4 pt-6 border-t border-slate-200">
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Overall Avg Temp</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Overall Avg Temp</p>
                 <p className="text-xl font-bold text-orange-600">{monthlyData.summary.overallAvgTemp.toFixed(2)}°C</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Overall Avg Humidity</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Overall Avg Humidity</p>
                 <p className="text-xl font-bold text-blue-600">{monthlyData.summary.overallAvgHum.toFixed(2)}%</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Max Temperature</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Max Temperature</p>
                 <p className="text-xl font-bold text-red-600">{monthlyData.summary.maxTemp.toFixed(2)}°C</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Min Temperature</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Min Temperature</p>
                 <p className="text-xl font-bold text-blue-600">{monthlyData.summary.minTemp.toFixed(2)}°C</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Days</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Days</p>
                 <p className="text-xl font-bold text-slate-700">{monthlyData.summary.totalDays}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Readings</p>
+                <p className="text-sm md:text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Total Readings</p>
                 <p className="text-xl font-bold text-slate-700">{monthlyData.summary.totalReadings}</p>
               </div>
             </div>

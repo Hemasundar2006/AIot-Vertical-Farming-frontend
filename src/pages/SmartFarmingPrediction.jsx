@@ -90,7 +90,7 @@ const SmartFarmingPrediction = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'].map((key) => (
             <div key={key} className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-600">{key.toUpperCase()}</label>
+              <label className="text-sm md:text-xs font-semibold text-slate-600">{key.toUpperCase()}</label>
               <input
                 type="number"
                 name={key}
@@ -104,7 +104,7 @@ const SmartFarmingPrediction = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-600">Soil Type</label>
+            <label className="text-sm md:text-xs font-semibold text-slate-600">Soil Type</label>
             <select
               name="soiltype"
               value={form.soiltype}
@@ -120,7 +120,7 @@ const SmartFarmingPrediction = () => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-600">Season</label>
+            <label className="text-sm md:text-xs font-semibold text-slate-600">Season</label>
             <select
               name="season"
               value={form.season}
@@ -136,7 +136,7 @@ const SmartFarmingPrediction = () => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-slate-600">Month Range</label>
+            <label className="text-sm md:text-xs font-semibold text-slate-600">Month Range</label>
             <select
               name="month"
               value={form.month}

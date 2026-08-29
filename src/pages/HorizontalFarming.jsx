@@ -71,7 +71,7 @@ const HorizontalFarming = () => {
           animate={{ y: 0, opacity: 1 }}
           className="mb-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-bold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-sm md:text-xs font-bold uppercase tracking-wider mb-4">
             <Sprout size={14} /> Horizontal Farming
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
@@ -94,7 +94,7 @@ const HorizontalFarming = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'].map((key) => (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                <label className="text-sm md:text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   {key === 'ph' ? 'pH' : key}
                 </label>
                 <input
@@ -113,7 +113,7 @@ const HorizontalFarming = () => {
           {/* Dropdowns */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Soil Type</label>
+              <label className="text-sm md:text-xs font-semibold text-slate-600 uppercase tracking-wide">Soil Type</label>
               <select
                 name="soiltype"
                 value={form.soiltype}
@@ -129,7 +129,7 @@ const HorizontalFarming = () => {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Season</label>
+              <label className="text-sm md:text-xs font-semibold text-slate-600 uppercase tracking-wide">Season</label>
               <select
                 name="season"
                 value={form.season}
@@ -145,7 +145,7 @@ const HorizontalFarming = () => {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Month Range</label>
+              <label className="text-sm md:text-xs font-semibold text-slate-600 uppercase tracking-wide">Month Range</label>
               <select
                 name="month"
                 value={form.month}

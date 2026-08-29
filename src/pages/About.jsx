@@ -61,7 +61,7 @@ const StatBadge = ({ value, label }) => (
     className="flex flex-col items-center px-6 py-4 bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm"
   >
     <span className="text-3xl font-black text-[#1F3B21]">{value}</span>
-    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">{label}</span>
+    <span className="text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">{label}</span>
   </motion.div>
 );
 
@@ -101,7 +101,7 @@ const About = () => {
         >
           <motion.div
             variants={fadeInUp}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10"
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-sm md:text-[11px] font-black uppercase tracking-widest mb-5 border border-[#213E20]/10"
           >
             <Leaf size={13} className="text-[#C49E40]" /> Our Story
           </motion.div>
@@ -222,7 +222,7 @@ const About = () => {
           variants={stagger}
         >
           <motion.div variants={fadeInUp} className="text-center mb-12">
-            <span className="inline-block px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-[11px] font-black uppercase tracking-widest border border-[#213E20]/10 mb-4">
+            <span className="inline-block px-4 py-1.5 bg-[#213E20]/6 text-[#213E20] rounded-full text-sm md:text-[11px] font-black uppercase tracking-widest border border-[#213E20]/10 mb-4">
               What We Stand For
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Built on Core Values</h2>
