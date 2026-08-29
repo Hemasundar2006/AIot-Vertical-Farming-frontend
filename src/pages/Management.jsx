@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Linkedin, Twitter, Mail, GraduationCap, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -100,7 +100,8 @@ const Management = () => {
         
         const data = response.data.data || response.data;
         if (Array.isArray(data)) {
-          setTeamMembers(data);
+          const sortedData = [...data].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          setTeamMembers(sortedData);
         }
       } catch (error) {
         console.error('Failed to fetch management team:', error);
@@ -253,4 +254,6 @@ const Management = () => {
 };
 
 export default Management;
+
+
 

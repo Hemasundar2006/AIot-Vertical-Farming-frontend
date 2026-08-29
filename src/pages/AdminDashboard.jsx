@@ -14,7 +14,8 @@ import {
   Film,
   Gauge,
   Menu,
-  X
+  X,
+  Leaf
 } from 'lucide-react';
 
 import AdminTelemetry from './admin/AdminTelemetry';
@@ -43,6 +44,7 @@ const AdminDashboard = () => {
     { name: 'Management', path: '/admin/management', icon: <Briefcase size={20} /> },
     { name: 'Projects', path: '/admin/projects', icon: <Film size={20} /> },
     { name: 'Plots', path: '/admin/plots', icon: <FileText size={20} /> },
+    { name: 'Plant Analyzer', path: '/plant-analyzer', icon: <Leaf size={20} /> },
     { name: 'Notifications', path: '/admin/notifications', icon: <Bell size={20} /> },
     { name: 'Logs', path: '/admin/logs', icon: <ShieldAlert size={20} /> },
   ];

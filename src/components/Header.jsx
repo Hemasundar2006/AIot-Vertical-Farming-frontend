@@ -37,6 +37,7 @@ const Header = () => {
 
     const adminLinks = [
         { name: 'Admin Panel', path: '/admin' },
+        { name: 'Plant Analyzer', path: '/plant-analyzer', icon: Microscope },
         { name: 'Market Rates', path: '/market-rates' },
         { name: 'AI Chatbot', path: '/chatbot' },
     ];

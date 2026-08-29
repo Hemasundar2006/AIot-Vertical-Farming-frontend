@@ -200,10 +200,10 @@ const AdminManagement = () => {
               <div key={profile._id} className="bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-lg transition-shadow p-6 relative flex flex-col items-center">
                  {/* Reorder Buttons */}
                  <div className="absolute top-4 right-4 flex flex-col gap-1">
-                   <button onClick={() => handleReorder(index, 'up')} disabled={(currentPage - 1) * itemsPerPage + index === 0} className={p-1.5 rounded-full }>
+                   <button onClick={() => handleReorder(index, 'up')} disabled={(currentPage - 1) * itemsPerPage + index === 0} className="p-1.5 rounded-full text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                      <ArrowUp size={20}/>
                    </button>
-                   <button onClick={() => handleReorder(index, 'down')} disabled={(currentPage - 1) * itemsPerPage + index === profiles.length - 1} className={p-1.5 rounded-full }>
+                   <button onClick={() => handleReorder(index, 'down')} disabled={(currentPage - 1) * itemsPerPage + index === profiles.length - 1} className="p-1.5 rounded-full text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                      <ArrowDown size={20}/>
                    </button>
                  </div>
