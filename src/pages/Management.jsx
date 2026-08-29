@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Linkedin, Twitter, Mail, GraduationCap, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -96,7 +96,7 @@ const Management = () => {
         const token = localStorage.getItem('farm_token');
         const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
         
-        const response = await axios.get(${API_URL}/admin/management);
+        const response = await axios.get(`${API_URL}/admin/management`);
         
         const data = response.data.data || response.data;
         if (Array.isArray(data)) {
@@ -159,7 +159,7 @@ const Management = () => {
           </motion.p>
         </motion.div>
 
-        {/* -- Team Grid — 2 cols on md, 4 on xl -- */}
+        {/* -- Team Grid ï¿½ 2 cols on md, 4 on xl -- */}
         {loading ? (
            <div className="text-center py-20 text-gray-500 font-medium">Loading Team...</div>
         ) : teamMembers.length === 0 ? (
@@ -253,3 +253,4 @@ const Management = () => {
 };
 
 export default Management;
+
