@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Linkedin, Twitter, Mail, Award, Brain, Sprout, ArrowRight } from 'lucide-react';
+import { Users, Linkedin, Twitter, Mail, GraduationCap, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-/* ── Animation Variants ── */
+/* -- Animation Variants -- */
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] } },
-};
-
-const fadeInLeft = {
-  hidden: { opacity: 0, x: -50 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.4, 0, 0.2, 1] } },
 };
 
 const scaleIn = {
@@ -25,25 +20,27 @@ const stagger = {
   visible: { opacity: 1, transition: { staggerChildren: 0.14 } },
 };
 
-const staggerFast = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.09 } },
-};
-
-/* ── Team Member Card ── */
+/* -- Team Member Card -- */
 const TeamCard = ({ member }) => (
   <motion.div
     variants={scaleIn}
     whileHover={{ y: -8, transition: { duration: 0.3 } }}
-    className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group relative"
+    className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group relative flex flex-col h-full"
   >
     {/* Image */}
-    <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
-      <img
-        src={member.photoUrl || member.image || member.imageUrl}
-        alt={member.name}
-        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-      />
+    <div className="relative w-full aspect-square overflow-hidden bg-gray-50 flex-shrink-0">
+      {member.photoUrl || member.image || member.imageUrl ? (
+        <img
+          src={member.photoUrl || member.image || member.imageUrl}
+          alt={member.name}
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+           <span className="text-6xl font-bold text-gray-400">{member.name.charAt(0)}</span>
+        </div>
+      )}
+      
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#213E20]/85 via-[#213E20]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
 
@@ -67,24 +64,27 @@ const TeamCard = ({ member }) => (
     </div>
 
     {/* Content */}
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-[#213E20]/8 flex items-center justify-center text-[#C49E40] group-hover:bg-[#213E20] transition-colors duration-300">
-          {member.icon ? <member.icon size={17} /> : <Users size={17} />}
-        </div>
-        <div>
-          <h3 className="font-extrabold text-gray-900 text-base leading-tight group-hover:text-[#1F3B21] transition-colors">
-            {member.name}
-          </h3>
-          <p className="text-sm md:text-[11px] text-[#C49E40] font-bold uppercase tracking-wider">{member.role || member.designation}</p>
-        </div>
+    <div className="p-6 flex flex-col flex-grow">
+      <div className="flex flex-col gap-1 mb-3">
+        <h3 className="font-extrabold text-gray-900 text-lg leading-tight group-hover:text-[#1F3B21] transition-colors text-center">
+          {member.name}
+        </h3>
+        <p className="text-sm md:text-[11px] text-[#C49E40] font-bold uppercase tracking-wider text-center">{member.role || member.designation}</p>
       </div>
-      <p className="text-sm text-gray-500 font-medium leading-relaxed">{member.bio || member.description}</p>
+      
+      {member.collegeName && (
+        <div className="flex items-center justify-center gap-1.5 text-gray-500 text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full mb-4 w-full">
+          <GraduationCap size={14} className="text-[#C49E40]" />
+          <span className="truncate">{member.collegeName}</span>
+        </div>
+      )}
+      
+      <p className="text-sm text-gray-500 font-medium leading-relaxed flex-grow text-center">{member.bio || member.description}</p>
     </div>
   </motion.div>
 );
 
-/* ── Main Component ── */
+/* -- Main Component -- */
 const Management = () => {
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
@@ -96,18 +96,14 @@ const Management = () => {
         const token = localStorage.getItem('farm_token');
         const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
         
-        const response = await axios.get(`${API_URL}/admin/management`);
+        const response = await axios.get(${API_URL}/admin/management);
         
         const data = response.data.data || response.data;
         if (Array.isArray(data)) {
-          console.log("Team Members Loaded from API:", data);
           setTeamMembers(data);
-        } else {
-          console.warn("API did not return an array:", data);
         }
       } catch (error) {
         console.error('Failed to fetch management team:', error);
-        setTeamMembers([]);
       } finally {
         setLoading(false);
       }
@@ -115,13 +111,6 @@ const Management = () => {
 
     fetchManagement();
   }, []);
-
-  const STATS = [
-    { value: '40+', label: 'Team Members' },
-    { value: '12+', label: 'States Covered' },
-    { value: '8 yrs', label: 'Combined Expertise' },
-    { value: '99%', label: 'Client Satisfaction' },
-  ];
 
   return (
     <div className="min-h-screen bg-agri-light pt-28 pb-24 px-6 lg:px-12 relative overflow-x-hidden">
@@ -141,7 +130,7 @@ const Management = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
 
-        {/* ── Header ── */}
+        {/* -- Header -- */}
         <motion.div
           className="text-center max-w-3xl mx-auto mb-16"
           initial="hidden"
@@ -170,28 +159,12 @@ const Management = () => {
           </motion.p>
         </motion.div>
 
-        {/* ── Stats Row ── */}
-        <motion.div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-20"
-          initial="hidden"
-          animate="visible"
-          variants={staggerFast}
-        >
-          {STATS.map(({ value, label }) => (
-            <motion.div
-              key={label}
-              variants={scaleIn}
-              whileHover={{ y: -4 }}
-              className="flex flex-col items-center py-6 px-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
-            >
-              <span className="text-3xl font-black text-[#1F3B21]">{value}</span>
-              <span className="text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mt-1 text-center">{label}</span>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* ── Team Grid — 2 cols on md, 4 on xl ── */}
-        {!loading && (
+        {/* -- Team Grid � 2 cols on md, 4 on xl -- */}
+        {loading ? (
+           <div className="text-center py-20 text-gray-500 font-medium">Loading Team...</div>
+        ) : teamMembers.length === 0 ? (
+           <div className="text-center py-20 text-gray-500 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm mb-24">No team members currently active.</div>
+        ) : (
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-24"
             initial="hidden"
@@ -205,7 +178,7 @@ const Management = () => {
           </motion.div>
         )}
 
-        {/* ── Values Strip ── */}
+        {/* -- Values Strip -- */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24"
           initial="hidden"
@@ -214,9 +187,9 @@ const Management = () => {
           variants={stagger}
         >
           {[
-            { emoji: '🌱', title: 'Rooted in Science', desc: 'Every decision we make is backed by data, research, and decades of agronomic expertise.' },
-            { emoji: '🤝', title: 'Farmer-First Culture', desc: 'We listen to growers. Our roadmap is built on real-world feedback from the farms we serve.' },
-            { emoji: '🚀', title: 'Move Fast, Grow Slow', desc: 'We iterate rapidly on software while championing the patient, cyclical rhythm of nature.' },
+            { emoji: '??', title: 'Rooted in Science', desc: 'Every decision we make is backed by data, research, and decades of agronomic expertise.' },
+            { emoji: '??', title: 'Farmer-First Culture', desc: 'We listen to growers. Our roadmap is built on real-world feedback from the farms we serve.' },
+            { emoji: '??', title: 'Move Fast, Grow Slow', desc: 'We iterate rapidly on software while championing the patient, cyclical rhythm of nature.' },
           ].map(({ emoji, title, desc }) => (
             <motion.div
               key={title}
@@ -231,7 +204,7 @@ const Management = () => {
           ))}
         </motion.div>
 
-        {/* ── Join the team CTA ── */}
+        {/* -- Join the team CTA -- */}
         <motion.div
           className="relative bg-[#213E20] rounded-[2rem] p-10 sm:p-14 text-center shadow-xl overflow-hidden text-white"
           initial="hidden"

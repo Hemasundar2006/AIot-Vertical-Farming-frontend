@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Briefcase, Trash2, Edit, Upload, X } from 'lucide-react';
-import Pagination from '../../components/Pagination';
+import { Briefcase, Trash2, Edit, X, ArrowUp, ArrowDown, GraduationCap } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
 
@@ -10,12 +9,12 @@ const AdminManagement = () => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+  const [formData, setFormData] = useState({ name: '', designation: '', email: '', phone: '', collegeName: '', description: '', displayOrder: 0, isActive: true });
   const [file, setFile] = useState(null);
 
   // Edit State
   const [editingProfile, setEditingProfile] = useState(null);
-  const [editFormData, setEditFormData] = useState({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+  const [editFormData, setEditFormData] = useState({ name: '', designation: '', email: '', phone: '', collegeName: '', description: '', displayOrder: 0, isActive: true });
   const [editFile, setEditFile] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,7 +22,7 @@ const AdminManagement = () => {
 
   const fetchProfiles = async () => {
     try {
-      const res = await axios.get(`${API_URL}/admin/management`); // Public route for now
+      const res = await axios.get(${API_URL}/admin/management); // Public route for now
       setProfiles(res.data);
     } catch (error) {
       toast.error('Failed to fetch management profiles');
@@ -38,11 +37,40 @@ const AdminManagement = () => {
     if (!window.confirm("Are you sure you want to delete this profile?")) return;
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.delete(`${API_URL}/admin/management/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(${API_URL}/admin/management/, { headers: { Authorization: Bearer  } });
       toast.success('Profile deleted');
       fetchProfiles();
     } catch (error) {
       toast.error('Failed to delete profile');
+    }
+  };
+
+  const handleReorder = async (index, direction) => {
+    const actualIndex = (currentPage - 1) * itemsPerPage + index;
+    const newProfiles = [...profiles];
+    if (direction === 'up' && actualIndex > 0) {
+      const temp = newProfiles[actualIndex];
+      newProfiles[actualIndex] = newProfiles[actualIndex - 1];
+      newProfiles[actualIndex - 1] = temp;
+    } else if (direction === 'down' && actualIndex < newProfiles.length - 1) {
+      const temp = newProfiles[actualIndex];
+      newProfiles[actualIndex] = newProfiles[actualIndex + 1];
+      newProfiles[actualIndex + 1] = temp;
+    } else {
+      return; 
+    }
+
+    // Update display orders based on array index
+    const orderings = newProfiles.map((p, i) => ({ id: p._id, displayOrder: i }));
+    setProfiles(newProfiles);
+
+    try {
+      const token = localStorage.getItem('farm_token');
+      await axios.put(${API_URL}/admin/management/reorder, { orderings }, { headers: { Authorization: Bearer  } });
+      toast.success('Reordered successfully');
+    } catch (error) {
+      toast.error('Failed to reorder');
+      fetchProfiles(); 
     }
   };
 
@@ -56,17 +84,19 @@ const AdminManagement = () => {
     data.append('designation', formData.designation);
     data.append('email', formData.email);
     data.append('phone', formData.phone);
+    data.append('collegeName', formData.collegeName);
     data.append('description', formData.description);
-    data.append('displayOrder', formData.displayOrder);
+    // New items go to the end
+    data.append('displayOrder', profiles.length);
     data.append('isActive', formData.isActive);
 
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.post(`${API_URL}/admin/management`, data, { 
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
+      await axios.post(${API_URL}/admin/management, data, { 
+        headers: { Authorization: Bearer , 'Content-Type': 'multipart/form-data' } 
       });
       toast.success('Profile added successfully!');
-      setFormData({ name: '', designation: '', email: '', phone: '', description: '', displayOrder: 0, isActive: true });
+      setFormData({ name: '', designation: '', email: '', phone: '', collegeName: '', description: '', displayOrder: 0, isActive: true });
       setFile(null);
       fetchProfiles();
     } catch (error) {
@@ -83,6 +113,7 @@ const AdminManagement = () => {
       designation: profile.designation || '',
       email: profile.email || '',
       phone: profile.phone || '',
+      collegeName: profile.collegeName || '',
       description: profile.description || '',
       displayOrder: profile.displayOrder || 0,
       isActive: profile.isActive ?? true
@@ -100,14 +131,15 @@ const AdminManagement = () => {
     data.append('designation', editFormData.designation);
     data.append('email', editFormData.email);
     data.append('phone', editFormData.phone);
+    data.append('collegeName', editFormData.collegeName);
     data.append('description', editFormData.description);
     data.append('displayOrder', editFormData.displayOrder);
     data.append('isActive', editFormData.isActive);
 
     try {
       const token = localStorage.getItem('farm_token');
-      await axios.put(`${API_URL}/admin/management/${editingProfile._id}`, data, { 
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } 
+      await axios.put(${API_URL}/admin/management/, data, { 
+        headers: { Authorization: Bearer , 'Content-Type': 'multipart/form-data' } 
       });
       toast.success('Profile updated successfully!');
       setEditingProfile(null);
@@ -136,9 +168,10 @@ const AdminManagement = () => {
         </div>
 
         <form onSubmit={handleUploadSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <input type="text" required placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
             <input type="text" required placeholder="Designation" value={formData.designation} onChange={(e) => setFormData({...formData, designation: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
+            <input type="text" placeholder="College / University Name" value={formData.collegeName} onChange={(e) => setFormData({...formData, collegeName: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
             <input type="email" required placeholder="Email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
             <input type="text" placeholder="Phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#C49E40]" />
           </div>
@@ -155,51 +188,66 @@ const AdminManagement = () => {
         </form>
       </div>
 
-      {/* Profiles List */}
+      {/* Profiles Grid */}
       <div>
         <h3 className="font-bold text-lg text-gray-900 mb-4">Current Team Members</h3>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto w-full">
-          <table className="w-full text-left text-sm text-gray-500">
-            <thead className="bg-gray-50 text-gray-700 text-sm md:text-xs uppercase font-bold">
-              <tr>
-                <th className="px-6 py-4">Name</th>
-                <th className="px-6 py-4">Designation</th>
-                <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {profiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(profile => (
-                <tr key={profile._id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
-                    {profile.photoUrl ? (
-                      <img src={profile.photoUrl} alt={profile.name} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">{profile.name.charAt(0)}</div>
-                    )}
-                    {profile.name}
-                  </td>
-                  <td className="px-6 py-4">{profile.designation}</td>
-                  <td className="px-6 py-4">{profile.email}</td>
-                  <td className="px-6 py-4 flex items-center justify-end gap-3">
-                    <button onClick={() => handleEditClick(profile)} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Profile">
-                      <Edit size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(profile._id)} className="text-red-500 hover:text-red-700 transition-colors" title="Delete Profile">
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {profiles.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center">No profiles found.</td></tr>}
-            </tbody>
-          </table>
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={Math.ceil(profiles.length / itemsPerPage)} 
-            onPageChange={setCurrentPage} 
-          />
-        </div>
+        
+        {profiles.length === 0 ? (
+           <div className="bg-white rounded-xl p-8 text-center text-gray-500 border border-gray-200 shadow-sm">No profiles found. Add some above!</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {profiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((profile, index) => (
+              <div key={profile._id} className="bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-lg transition-shadow p-6 relative flex flex-col items-center">
+                 {/* Reorder Buttons */}
+                 <div className="absolute top-4 right-4 flex flex-col gap-1">
+                   <button onClick={() => handleReorder(index, 'up')} disabled={(currentPage - 1) * itemsPerPage + index === 0} className={p-1.5 rounded-full }>
+                     <ArrowUp size={20}/>
+                   </button>
+                   <button onClick={() => handleReorder(index, 'down')} disabled={(currentPage - 1) * itemsPerPage + index === profiles.length - 1} className={p-1.5 rounded-full }>
+                     <ArrowDown size={20}/>
+                   </button>
+                 </div>
+                 
+                 {/* Action Buttons */}
+                 <div className="absolute top-4 left-4 flex gap-2">
+                   <button onClick={() => handleEditClick(profile)} className="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition-colors" title="Edit"><Edit size={16}/></button>
+                   <button onClick={() => handleDelete(profile._id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors" title="Delete"><Trash2 size={16}/></button>
+                 </div>
+                 
+                 <div className="mt-4 mb-4">
+                   {profile.photoUrl ? (
+                     <img src={profile.photoUrl} alt={profile.name} className="w-28 h-28 rounded-full object-cover border-4 border-amber-50 shadow-sm" />
+                   ) : (
+                     <div className="w-28 h-28 rounded-full bg-amber-100 flex items-center justify-center font-black text-3xl text-amber-600 border-4 border-amber-50 shadow-sm">{profile.name.charAt(0)}</div>
+                   )}
+                 </div>
+                 
+                 <h4 className="font-black text-xl text-gray-900 text-center">{profile.name}</h4>
+                 <p className="text-[#C49E40] font-bold text-sm text-center mb-2 uppercase tracking-wide">{profile.designation}</p>
+                 
+                 {profile.collegeName && (
+                   <div className="flex items-center justify-center gap-1.5 text-gray-500 text-xs font-bold bg-gray-100 px-3 py-1 rounded-full mb-3">
+                     <GraduationCap size={14} />
+                     <span>{profile.collegeName}</span>
+                   </div>
+                 )}
+                 
+                 <p className="text-gray-500 text-xs text-center line-clamp-3 mb-4 flex-1">{profile.description}</p>
+                 
+                 <div className="w-full bg-gray-50 rounded-xl p-4 text-xs text-gray-600 font-medium">
+                   <div className="flex justify-between mb-2">
+                     <span className="text-gray-400">Email</span> 
+                     <span className="text-gray-900 truncate max-w-[150px]" title={profile.email}>{profile.email || 'N/A'}</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span className="text-gray-400">Phone</span> 
+                     <span className="text-gray-900">{profile.phone || 'N/A'}</span>
+                   </div>
+                 </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -223,6 +271,10 @@ const AdminManagement = () => {
                   <div>
                     <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Designation</label>
                     <input type="text" required value={editFormData.designation} onChange={(e) => setEditFormData({...editFormData, designation: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">College / University Name</label>
+                    <input type="text" value={editFormData.collegeName} onChange={(e) => setEditFormData({...editFormData, collegeName: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
                   </div>
                   <div>
                     <label className="block text-sm md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email</label>

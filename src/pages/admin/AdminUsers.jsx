@@ -111,10 +111,10 @@ const AdminUsers = () => {
             ))}
           </tbody>
         </table>
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={Math.ceil(users.length / itemsPerPage)} 
-          onPageChange={setCurrentPage} 
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(users.length / itemsPerPage)}
+          onPageChange={setCurrentPage}
         />
       </div>
 
@@ -124,16 +124,16 @@ const AdminUsers = () => {
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
             <h2 className="text-xl font-bold mb-4">Add New User</h2>
             <form onSubmit={handleAddSubmit} className="space-y-4">
-              <input required type="text" placeholder="Full Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
-              <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
-              <input required type="password" placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
-              <input type="tel" placeholder="Phone (Optional)" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
-              <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]">
+              <input required type="text" placeholder="Full Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+              <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+              <input required type="password" placeholder="Password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+              <input type="tel" placeholder="Phone (Optional)" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]" />
+              <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]">
                 <option value="user">Farmer</option>
                 <option value="admin">Admin</option>
               </select>
               {formData.role === 'user' && (
-                <select required value={formData.zoneId} onChange={e => setFormData({...formData, zoneId: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]">
+                <select required value={formData.zoneId} onChange={e => setFormData({ ...formData, zoneId: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-[#C49E40] focus:ring-1 focus:ring-[#C49E40]">
                   <option value="">Select Zone</option>
                   {zones.map(z => <option key={z._id} value={z._id}>{z.name} ({z.code})</option>)}
                 </select>
