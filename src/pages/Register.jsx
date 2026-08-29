@@ -9,7 +9,7 @@ const Register = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [zoneId, setZoneId] = useState('');
+
   const [role, setRole] = useState('user'); // Default to user
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -24,7 +24,7 @@ const Register = () => {
         return;
     }
     setIsLoading(true);
-    const success = await register(name, email, password, phone, role, zoneId);
+    const success = await register(name, email, password, phone, role);
     setIsLoading(false);
     if (success) {
       navigate('/my-farm');
@@ -107,21 +107,7 @@ const Register = () => {
                     </div>
                 </div>
 
-                <div>
-                    <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                        <Leaf className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                        type="text"
-                        required
-                        className="block w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-agri-gold focus:border-agri-gold text-gray-900 placeholder-gray-400 transition-all font-medium shadow-sm hover:shadow-md"
-                        placeholder={role === 'admin' ? 'Admin Zone ID' : 'Farm Zone ID'}
-                        value={zoneId}
-                        onChange={(e) => setZoneId(e.target.value)}
-                    />
-                    </div>
-                </div>
+
 
                 <div>
                     <div className="relative">
