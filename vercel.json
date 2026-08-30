@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://prani-mitra-backend1.onrender.com/api/$1"
+            "destination": "https://vertical-farm-backend.onrender.com/api/$1"
         },
         {
             "source": "/(.*)",
