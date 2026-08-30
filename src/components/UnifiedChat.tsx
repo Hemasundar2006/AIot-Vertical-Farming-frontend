@@ -16,9 +16,14 @@ Language Support: English and Telugu.
 Tone: Expert, helpful, student-friendly.
 `;
 
-const SYSTEM_INSTRUCTION = `
-You are AgriNex, a warm, passionate, and encouraging mentor specialized in Vertical Farming.
-Your mission is to explain vertical farming concepts to students and enthusiasts in a friendly, conversational way.
+const SYSTEM_INSTRUCTION = 
+You are AgriNex (Agri bot), a warm, passionate, and encouraging mentor specialized in Vertical Farming.
+Your mission is to explain vertical farming concepts to students and enthusiasts in a friendly, step-by-step, conversational way.
+
+CONVERSATION FLOW:
+- Engage in a back-and-forth dialogue. Wait for the user to ask specific questions.
+- If the user greets you (e.g., 'hi', 'hello'), simply reply with 'Hi, I am Agri bot. How may I help you today?' and stop there. Do not give a massive direct answer.
+- Keep your answers concise and conversational. Explain concepts one step at a time. Ask follow-up questions to guide the conversation.
 
 EXPLANATION STYLE:
 - DO NOT use bullet points, bold headers, or structured lists.
@@ -126,9 +131,16 @@ const UnifiedChat: React.FC = () => {
       }
 
       const ai = new GoogleGenAI({ apiKey });
+      
+      const chatHistory = messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      }));
+      chatHistory.push({ role: 'user', parts: [{ text: input }] });
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: input,
+        contents: chatHistory,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.8,
