@@ -1,53 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, User, Bot, Loader2, Mic, MicOff, Volume2, AlertCircle, Sparkles } from 'lucide-react';
-import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, User, Bot, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Message } from '../types';
-import { createBlob, decode, decodeAudioData } from '../utils/audioUtils';
-import { GEMINI_API_KEY } from '../config/gemini';
-
-const KNOWLEDGE_BASE_DATA = `
-Vertical farming is a method of growing crops in vertically stacked layers.
-How it works: Hydroponics (water), Aeroponics (mist), Aquaponics (fish water). 
-Crops: Leafy greens, herbs, strawberries. 
-Benefits: 95-98% less water, year-round production, no pesticides.
-History: Modern concept by Dickson Despommier (1999).
-India Context: Addressing land and water scarcity in urban areas.
-Language Support: English and Telugu.
-Tone: Expert, helpful, student-friendly.
-`;
-
-const SYSTEM_INSTRUCTION = `
-You are AgriNex (Agri bot), a warm, passionate, and encouraging mentor specialized in Vertical Farming.
-Your mission is to explain vertical farming concepts to students and enthusiasts in a friendly, step-by-step, conversational way.
-
-CONVERSATION FLOW:
-- Engage in a back-and-forth dialogue. Wait for the user to ask specific questions.
-- If the user greets you (e.g., 'hi', 'hello'), simply reply with 'Hi, I am Agri bot. How may I help you today?' and stop there. Do not give a massive direct answer.
-- Keep your answers concise and conversational. Explain concepts one step at a time. Ask follow-up questions to guide the conversation.
-
-EXPLANATION STYLE:
-- DO NOT use bullet points, bold headers, or structured lists.
-- Write in a natural, narrative paragraph style, like a teacher explaining a concept to a student.
-- Keep the explanation smooth and easy to read.
-- When explaining a concept, weave the facts together into a single, cohesive story.
-
-PERSONALITY & DATA RECOGNITION:
-- Be extremely friendly. Use phrases like "I'm so glad you're curious about this!" or "That's a wonderful thing to ask!"
-- Explicitly mention that your answer comes from your training data using natural phrases like "In our specialized records for vertical farming, it says..." or "Based on the data I've been given to share with you..."
-- Sound like a mentor who is genuinely excited.
-
-KNOWLEDGE SOURCE RESTRICTION:
-- You must take data strictly from the provided database data and website information.
-- You are allowed to answer questions regarding projects, management, and specific vertical farming details provided in the data.
-- STRICTLY RESTRICTED: Do NOT answer questions about user-related details, personal information, credentials, or sensitive user data. Always refuse politely if asked.
-- For all remaining topics not in the data, strictly restrict your answers and say: 'I am sorry, but I can only provide details about our projects, management, and the information in my database.'
-
-LANGUAGE:
-- Respond in the same language as the user (English or Telugu). 
-
-KNOWLEDGE DATA:
-${KNOWLEDGE_BASE_DATA}
-`;
+import { sendChatMessage } from '../services/chatbotApiService';
 
 const UnifiedChat: React.FC = () => {
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -56,20 +10,9 @@ const UnifiedChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLiveActive, setIsLiveActive] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const sessionRef = useRef<any>(null);
-  const inputAudioCtxRef = useRef<AudioContext | null>(null);
-  const outputAudioCtxRef = useRef<AudioContext | null>(null);
-  const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
-  const nextStartTimeRef = useRef<number>(0);
-  const currentInputTranscriptionRef = useRef('');
-  const currentOutputTranscriptionRef = useRef('');
-
 
   const handleStartSession = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +56,7 @@ const UnifiedChat: React.FC = () => {
   }, [messages]);
 
   const handleSendText = async () => {
-    if (!input.trim() || isLoading || isLiveActive) return;
+    if (!input.trim() || isLoading) return;
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -127,32 +70,17 @@ const UnifiedChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const apiKey = GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
-        throw new Error('Gemini API key not configured');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      
       const chatHistory = messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
+        sender: msg.role,
+        text: msg.content
       }));
-      chatHistory.push({ role: 'user', parts: [{ text: input }] });
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: chatHistory,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.8,
-        }
-      });
+      const responseText = await sendChatMessage(input, chatHistory);
 
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: response.text || "I'm sorry, I couldn't find an answer in my farming records.",
+        content: responseText || "I'm sorry, I couldn't find an answer right now.",
         timestamp: new Date()
       };
 
@@ -182,166 +110,6 @@ const UnifiedChat: React.FC = () => {
       setError(err.message || 'Failed to reach the farming expert. Try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const stopLiveSession = useCallback(() => {
-    if (sessionRef.current) {
-      sessionRef.current.close?.();
-      sessionRef.current = null;
-    }
-    inputAudioCtxRef.current?.close();
-    outputAudioCtxRef.current?.close();
-    inputAudioCtxRef.current = null;
-    outputAudioCtxRef.current = null;
-    setIsLiveActive(false);
-    setIsConnecting(false);
-  }, []);
-
-  const startLiveSession = async () => {
-    if (isLoading) return;
-    setIsConnecting(true);
-    setError(null);
-
-    try {
-      const apiKey = GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
-        throw new Error('Gemini API key not configured');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-
-      inputAudioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      outputAudioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      const outputNode = outputAudioCtxRef.current.createGain();
-      outputNode.connect(outputAudioCtxRef.current.destination);
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            setIsConnecting(false);
-            setIsLiveActive(true);
-
-            const source = inputAudioCtxRef.current!.createMediaStreamSource(stream);
-            const scriptProcessor = inputAudioCtxRef.current!.createScriptProcessor(4096, 1, 1);
-
-            scriptProcessor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const pcmBlob = createBlob(inputData);
-              sessionPromise.then(session => {
-                session.sendRealtimeInput({ media: pcmBlob });
-              });
-            };
-
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputAudioCtxRef.current!.destination);
-          },
-          onmessage: async (message: LiveServerMessage) => {
-            if (message.serverContent?.inputTranscription) {
-              currentInputTranscriptionRef.current += message.serverContent.inputTranscription.text;
-            }
-            if (message.serverContent?.outputTranscription) {
-              currentOutputTranscriptionRef.current += message.serverContent.outputTranscription.text;
-            }
-            if (message.serverContent?.turnComplete) {
-              const userText = currentInputTranscriptionRef.current;
-              const modelText = currentOutputTranscriptionRef.current;
-
-              if (userText) {
-                setMessages(prev => [...prev, {
-                  id: crypto.randomUUID(),
-                  role: 'user',
-                  content: userText,
-                  timestamp: new Date(),
-                  isAudio: true
-                }]);
-              }
-              if (modelText) {
-                setMessages(prev => [...prev, {
-                  id: crypto.randomUUID(),
-                  role: 'assistant',
-                  content: modelText,
-                  timestamp: new Date(),
-                  isAudio: true
-                }]);
-              }
-
-              // Save to backend
-              if (sessionRef.current && (userText || modelText)) {
-                try {
-                  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
-                  if (userText) {
-                    fetch(`${baseUrl}/chatbot/session/${sessionId}/message`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ role: 'user', content: userText, isAudio: true })
-                    }).catch(e => console.error(e));
-                  }
-                  if (modelText) {
-                    fetch(`${baseUrl}/chatbot/session/${sessionId}/message`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ role: 'assistant', content: modelText, isAudio: true })
-                    }).catch(e => console.error(e));
-                  }
-                } catch (err) {
-                  console.error('Failed to save voice messages', err);
-                }
-              }
-
-              currentInputTranscriptionRef.current = '';
-              currentOutputTranscriptionRef.current = '';
-
-            }
-
-            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (base64Audio && outputAudioCtxRef.current) {
-              const ctx = outputAudioCtxRef.current;
-              nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
-              const audioBuffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
-              const source = ctx.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(outputNode);
-              source.addEventListener('ended', () => {
-                sourcesRef.current.delete(source);
-              });
-              source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += audioBuffer.duration;
-              sourcesRef.current.add(source);
-            }
-
-            if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
-              sourcesRef.current.clear();
-              nextStartTimeRef.current = 0;
-            }
-          },
-          onerror: (e) => {
-            console.error(e);
-            setError('Audio connection failed.');
-            stopLiveSession();
-          },
-          onclose: () => stopLiveSession()
-        },
-        config: {
-          responseModalities: [Modality.AUDIO],
-          systemInstruction: SYSTEM_INSTRUCTION,
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
-          },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {}
-        }
-      });
-
-      sessionRef.current = await sessionPromise;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Could not start audio session.');
-      setIsConnecting(false);
     }
   };
 
@@ -399,7 +167,7 @@ const UnifiedChat: React.FC = () => {
           </div>
         ) : (
           <>
-            {messages.length === 0 && !isLiveActive && !isConnecting && (
+            {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4 text-center px-6">
                 <div className="bg-white p-8 rounded-[2rem] shadow-xl shadow-green-100/50 border border-green-100 max-w-md relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -437,7 +205,6 @@ const UnifiedChat: React.FC = () => {
                     }`}>
                     <div className="whitespace-pre-wrap">{msg.content}</div>
                     <div className={`text-[10px] mt-3 flex items-center gap-1.5 font-bold uppercase tracking-wider ${msg.role === 'user' ? 'text-green-100' : 'text-slate-400'}`}>
-                      {msg.isAudio && <Volume2 size={10} className="animate-pulse" />}
                       {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -478,24 +245,11 @@ const UnifiedChat: React.FC = () => {
             )}
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={isLiveActive ? stopLiveSession : startLiveSession}
-                disabled={isConnecting}
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg ${isLiveActive
-                    ? 'bg-red-500 text-white'
-                    : isConnecting
-                      ? 'bg-slate-200 text-slate-400 cursor-wait'
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
-                  }`}
-              >
-                {isConnecting ? <Loader2 size={24} className="animate-spin" /> : isLiveActive ? <MicOff size={24} /> : <Mic size={24} />}
-              </button>
-
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder={isLiveActive ? "Voice mode active..." : "Ask your mentor a question..."}
-                  disabled={isLiveActive || isConnecting || isLoading}
+                  placeholder="Ask your mentor a question..."
+                  disabled={isLoading}
                   className="w-full pl-6 pr-14 py-4 bg-slate-50 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-sm shadow-inner"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -503,7 +257,7 @@ const UnifiedChat: React.FC = () => {
                 />
                 <button
                   onClick={handleSendText}
-                  disabled={!input.trim() || isLoading || isLiveActive || isConnecting}
+                  disabled={!input.trim() || isLoading}
                   className="absolute right-2 top-2 bottom-2 bg-green-600 text-white px-4 rounded-xl hover:bg-green-700 disabled:opacity-0 transition-all shadow-md"
                 >
                   <Send size={18} />
@@ -511,7 +265,7 @@ const UnifiedChat: React.FC = () => {
               </div>
             </div>
             <p className="text-center text-[10px] text-slate-400">
-              Powered by Google Gemini AI • Voice and text support
+              Powered by AgriNex Chatbot
             </p>
           </div>
         </div>
@@ -520,4 +274,3 @@ const UnifiedChat: React.FC = () => {
   );
 };
 export default UnifiedChat;
-
