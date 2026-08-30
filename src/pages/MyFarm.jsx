@@ -170,46 +170,73 @@ const MyFarm = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
-                    {plots.length === 0 && (
-                        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-8 text-center">
-                            <p className="text-gray-500 font-medium">You do not have any active plots assigned currently.</p>
+            {/* PLOTS LIST */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {plots.map(plot => (
+                    <div key={plot._id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-4">
+                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">{plot.status}</span>
+                            <span className="text-xs text-gray-400 font-medium">Zone {plot.zoneId || 'N/A'}</span>
                         </div>
-                    )}
-                </div>
+                        <h4 className="text-xl font-bold text-gray-900 mb-1">{plot.plotNumber} • {plot.cropType}</h4>
+                        <p className="text-sm text-gray-500 mb-4">{plot.area} Acres • Sown on {new Date(plot.sowingDate).toLocaleDateString()}</p>
+                        
+                        <div className="border-t border-gray-100 pt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Cycle Progress</span>
+                            <span className="font-bold text-[#213E20]">{plot.status === 'Harvested' ? '100% (Settled)' : plot.status === 'Growing' ? '65%' : '20%'}</span>
+                        </div>
+                    </div>
+                ))}
+                {plots.length === 0 && (
+                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-8 text-center col-span-full">
+                        <p className="text-gray-500 font-medium">You do not have any active plots assigned currently.</p>
+                    </div>
+                )}
             </div>
 
             {/* SETTLEMENTS */}
             <div>
-                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Download size={20} className="text-blue-500" /> Post-Harvest Settlements</h3>
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <Download size={20} className="text-blue-500" /> Post-Harvest Settlements &amp; Statements
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">Official settlement reports and payout distribution breakdown.</p>
+                    </div>
+                </div>
                 <div className="space-y-4">
                     {settlements.map(set => (
                         <div key={set._id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+                            <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm md:text-xs font-bold uppercase tracking-wider">{set.status}</span>
-                                        <span className="text-sm text-gray-400 font-medium">ID: {set.statementId && !set.statementId.includes('$') ? set.statementId : (set._id ? `STM-${set._id.slice(-6).toUpperCase()}` : 'N/A')}</span>
+                                        <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">{set.status || 'Settled'}</span>
+                                        <span className="text-xs text-gray-400 font-mono font-medium">ID: {set.statementId && !set.statementId.includes('$') ? set.statementId : (set._id ? `STM-${set._id.slice(-6).toUpperCase()}` : 'N/A')}</span>
                                     </div>
                                     <h4 className="text-lg font-bold text-gray-900">{set.plot?.plotNumber} • {set.plot?.cropType}</h4>
-                                    <p className="text-sm text-gray-500">Harvest Date: {new Date(set.createdAt).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-500">
+                                        Yield: <strong className="text-gray-700">{set.totalYieldKg || set.yieldKg || '--'} kg</strong> @ ₹{set.marketRate || '--'}/kg • Harvest Date: {new Date(set.createdAt).toLocaleDateString()}
+                                    </p>
                                 </div>
 
-                                <div className="flex gap-8 items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
                                     <div>
-                                        <p className="text-sm md:text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Gross Rev</p>
-                                        <p className="text-lg font-medium text-gray-900">₹{set.grossRevenue.toLocaleString()}</p>
+                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Gross Rev</p>
+                                        <p className="text-base font-semibold text-gray-900">₹{(set.grossRevenue || 0).toLocaleString('en-IN')}</p>
                                     </div>
-                                    <ArrowRight className="text-gray-300" size={20} />
                                     <div>
-                                        <p className="text-sm md:text-xs text-green-600 font-bold uppercase tracking-wider mb-1">Your Payout (80%)</p>
-                                        <p className="text-2xl font-black text-green-600">₹{set.netPayout.toLocaleString()}</p>
+                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Soil Reserve (10%)</p>
+                                        <p className="text-base font-semibold text-gray-700">₹{(set.soilReserve || (set.grossRevenue ? set.grossRevenue * 0.1 : 0)).toLocaleString('en-IN')}</p>
+                                    </div>
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <p className="text-[11px] text-emerald-600 font-bold uppercase tracking-wider mb-0.5">Net Payout (80%)</p>
+                                        <p className="text-xl font-black text-emerald-600">₹{(set.netPayout || 0).toLocaleString('en-IN')}</p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <button onClick={() => handleDownloadStatement(set)} className="w-full md:w-auto px-6 py-3 bg-[#213E20] text-white rounded-xl font-bold hover:bg-[#1a3119] transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                        <Download size={18} /> Download PDF
+                                    <button onClick={() => handleDownloadStatement(set)} className="w-full lg:w-auto px-6 py-3 bg-[#213E20] text-white rounded-xl font-bold hover:bg-[#1a3119] transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                                        <Download size={18} /> Download Statement PDF
                                     </button>
                                 </div>
                             </div>
