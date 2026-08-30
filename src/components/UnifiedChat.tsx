@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Message } from '../types';
-import { sendChatMessage } from '../services/chatbotApiService';
+import { sendChatMessage, createChatSession, saveSessionMessage } from '../services/chatbotApiService';
 
 const UnifiedChat: React.FC = () => {
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -20,13 +20,7 @@ const UnifiedChat: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
-      const response = await fetch(`${baseUrl}/chatbot/session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userDetails)
-      });
-      const data = await response.json();
+      const data = await createChatSession(userDetails);
       if (data.success) {
         setSessionId(data.sessionId);
         setIsSessionActive(true);
@@ -41,9 +35,9 @@ const UnifiedChat: React.FC = () => {
       } else {
         setError(data.message || 'Failed to start session');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Network error starting session. Is backend running?');
+      setError(err.message || 'Network error starting session. Is backend running?');
     } finally {
       setIsLoading(false);
     }
@@ -89,17 +83,8 @@ const UnifiedChat: React.FC = () => {
       // Save to backend
       if (sessionId) {
         try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
-          await fetch(`${baseUrl}/chatbot/session/${sessionId}/message`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role: 'user', content: input, isAudio: false })
-          });
-          await fetch(`${baseUrl}/chatbot/session/${sessionId}/message`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role: 'assistant', content: assistantMsg.content, isAudio: false })
-          });
+          await saveSessionMessage(sessionId, 'user', input);
+          await saveSessionMessage(sessionId, 'assistant', assistantMsg.content);
         } catch (err) {
           console.error('Failed to save messages', err);
         }

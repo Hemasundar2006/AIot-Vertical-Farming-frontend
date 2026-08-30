@@ -1,67 +1,49 @@
 import axios from 'axios';
 
-// Backend API base URL - will use Vercel proxy in production
+// Automatically uses your environment backend URL or relative /api proxy
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
-// Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Chat with the backend chatbot API
+// Chat with backend database chatbot
 export async function sendChatMessage(message, conversationHistory = []) {
   try {
     const response = await apiClient.post('/chatbot/chat', {
-      message: message,
-      conversationHistory: conversationHistory.slice(-5), // Last 5 messages for context
+      message,
+      conversationHistory: conversationHistory.slice(-5),
     });
-
     if (response.data && response.data.response) {
       return response.data.response;
     } else if (response.data && response.data.message) {
       return response.data.message;
-    } else {
-      throw new Error('Invalid response format from server');
     }
+    throw new Error('Invalid response format from server');
   } catch (error) {
     console.error('Chat API error:', error);
-    
-    if (error.response) {
-      // Server responded with error status
-      throw new Error(error.response.data?.message || `Server error: ${error.response.status}`);
-    } else if (error.request) {
-      // Request made but no response
-      throw new Error('No response from server. Please check your connection.');
-    } else {
-      // Error in request setup
-      throw new Error(error.message || 'Failed to send chat message');
-    }
+    throw new Error(error.response?.data?.message || 'Failed to get response from farm database.');
   }
 }
 
-// Alternative endpoint (for compatibility)
-export async function sendChatMessageAlt(message, conversationHistory = []) {
-  try {
-    const response = await apiClient.post('/chatbot', {
-      message: message,
-      conversationHistory: conversationHistory.slice(-5),
-    });
+// Start chat session
+export async function createChatSession(userDetails) {
+  const response = await apiClient.post('/chatbot/session', userDetails);
+  return response.data;
+}
 
-    if (response.data && response.data.response) {
-      return response.data.response;
-    } else if (response.data && response.data.message) {
-      return response.data.message;
-    } else {
-      throw new Error('Invalid response format from server');
-    }
-  } catch (error) {
-    console.error('Chat API error (alt):', error);
-    throw error;
-  }
+// Save message to session
+export async function saveSessionMessage(sessionId, role, content) {
+  const response = await apiClient.post(`/chatbot/session/${sessionId}/message`, {
+    role,
+    content,
+    isAudio: false
+  });
+  return response.data;
 }
 
 // Health check endpoint
@@ -95,8 +77,8 @@ export async function isBackendApiAvailable() {
 
 export default {
   sendChatMessage,
-  sendChatMessageAlt,
+  createChatSession,
+  saveSessionMessage,
   checkChatbotHealth,
   isBackendApiAvailable,
 };
-
