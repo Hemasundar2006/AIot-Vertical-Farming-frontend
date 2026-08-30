@@ -170,28 +170,13 @@ const MyFarm = () => {
                                 </div>
                             </div>
                         </div>
-            {/* PLOTS LIST */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {plots.map(plot => (
-                    <div key={plot._id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">{plot.status}</span>
-                            <span className="text-xs text-gray-400 font-medium">Zone {plot.zoneId || 'N/A'}</span>
+                    ))}
+                    {plots.length === 0 && (
+                        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-8 text-center">
+                            <p className="text-gray-500 font-medium">You do not have any active plots assigned currently.</p>
                         </div>
-                        <h4 className="text-xl font-bold text-gray-900 mb-1">{plot.plotNumber} • {plot.cropType}</h4>
-                        <p className="text-sm text-gray-500 mb-4">{plot.area} Acres • Sown on {new Date(plot.sowingDate).toLocaleDateString()}</p>
-                        
-                        <div className="border-t border-gray-100 pt-4 flex justify-between items-center text-xs text-gray-500">
-                            <span>Cycle Progress</span>
-                            <span className="font-bold text-[#213E20]">{plot.status === 'Harvested' ? '100% (Settled)' : plot.status === 'Growing' ? '65%' : '20%'}</span>
-                        </div>
-                    </div>
-                ))}
-                {plots.length === 0 && (
-                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-8 text-center col-span-full">
-                        <p className="text-gray-500 font-medium">You do not have any active plots assigned currently.</p>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* SETTLEMENTS */}
