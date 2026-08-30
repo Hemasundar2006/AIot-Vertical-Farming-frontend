@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://vertical-farm-backend.onrender.com/api/$1"
+            "destination": "https://aiot-vertical-farming-backend.onrender.com/api/$1"
         },
         {
             "source": "/(.*)",
