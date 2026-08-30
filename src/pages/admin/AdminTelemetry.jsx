@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFarm } from '../../context/FarmContext';
-import { Thermometer, Droplets, Wind, Zap, Gauge, Sun } from 'lucide-react';
+import { Thermometer, Droplets, Wind, Zap, Gauge, Sun, CloudFog } from 'lucide-react';
 
 const AdminTelemetry = () => {
     const { layers, isConnected, togglePump } = useFarm();
@@ -61,11 +61,12 @@ const AdminTelemetry = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                                         <StatBox icon={Thermometer} label="Temp" value={isConnected ? `${zone.temperature}°C` : '--'} color="text-orange-500" bgColor="bg-orange-50" />
                                         <StatBox icon={Wind} label="Humidity" value={isConnected ? `${zone.humidity}%` : '--'} color="text-blue-500" bgColor="bg-blue-50" />
                                         <StatBox icon={Droplets} label="Moisture" value={isConnected ? `${zone.moisture}%` : '--'} color="text-emerald-500" bgColor="bg-emerald-50" />
                                         <StatBox icon={Sun} label="Light" value={isConnected ? `${zone.light}` : '--'} color="text-amber-500" bgColor="bg-amber-50" />
+                                        <StatBox icon={CloudFog} label="Air Q (MQ2)" value={isConnected ? `${zone.gas}` : '--'} color="text-purple-500" bgColor="bg-purple-50" />
                                     </div>
 
                                     <button onClick={() => togglePump(zone.id)} className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${isMotorActive ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
