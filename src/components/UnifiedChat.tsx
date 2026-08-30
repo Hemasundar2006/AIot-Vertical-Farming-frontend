@@ -80,6 +80,14 @@ const UnifiedChat: React.FC = () => {
       if (data.success) {
         setSessionId(data.sessionId);
         setIsSessionActive(true);
+        setMessages([
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: 'Hi I am agri bot\nMay I help you',
+            timestamp: new Date()
+          }
+        ]);
       } else {
         setError(data.message || 'Failed to start session');
       }
