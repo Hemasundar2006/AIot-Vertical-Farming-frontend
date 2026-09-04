@@ -35,14 +35,14 @@ const AdminTelemetry = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {layersList.map((zone) => {
                         const isLive = Boolean(zone.isLive);
-                        const isMotorActive = zone.motor === 'ON';
+                        const isMotorActive = isLive && zone.motor === 'ON';
                         
-                        // Show actual API values when available; fallback to '--' only if no data has ever arrived
-                        const tempDisplay = (zone.temperature !== null && zone.temperature !== undefined) ? `${zone.temperature}°C` : '--';
-                        const humDisplay = (zone.humidity !== null && zone.humidity !== undefined) ? `${zone.humidity}%` : '--';
-                        const moistDisplay = (zone.moisture !== null && zone.moisture !== undefined) ? `${zone.moisture}%` : '--';
-                        const lightDisplay = (zone.light !== null && zone.light !== undefined) ? `${zone.light} Lx` : '--';
-                        const gasDisplay = (zone.gas !== null && zone.gas !== undefined) ? `${zone.gas}` : '--';
+                        // When disconnected, display '--'. When connected, display real values.
+                        const tempDisplay = isLive && zone.temperature !== null ? `${zone.temperature}°C` : '--';
+                        const humDisplay = isLive && zone.humidity !== null ? `${zone.humidity}%` : '--';
+                        const moistDisplay = isLive && zone.moisture !== null ? `${zone.moisture}%` : '--';
+                        const lightDisplay = isLive && zone.light !== null ? `${zone.light} Lx` : '--';
+                        const gasDisplay = isLive && zone.gas !== null ? `${zone.gas}` : '--';
 
                         return (
                             <div key={zone.id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-xl hover:shadow-emerald-900/5 transition-all flex flex-col justify-between">
@@ -63,26 +63,27 @@ const AdminTelemetry = () => {
                                         </div>
                                         <div className={`w-full sm:w-auto px-4 py-3 sm:py-2 rounded-xl text-sm md:text-xs font-black uppercase tracking-widest border-2 flex items-center justify-center sm:justify-start gap-2 ${isMotorActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
                                             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isMotorActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`} />
-                                            MOTOR {zone.motor || 'OFF'}
+                                            MOTOR {isLive ? (zone.motor || 'OFF') : 'OFF'}
                                         </div>
                                     </div>
 
-                                    {/* Sensor Metrics: Always shows real values from API */}
+                                    {/* Sensor Metrics: values only when live, '--' when offline */}
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                                        <StatBox icon={Thermometer} label="Temp" value={tempDisplay} color={isLive ? "text-orange-500" : "text-gray-500"} bgColor={isLive ? "bg-orange-50" : "bg-gray-50"} />
-                                        <StatBox icon={Wind} label="Humidity" value={humDisplay} color={isLive ? "text-blue-500" : "text-gray-500"} bgColor={isLive ? "bg-blue-50" : "bg-gray-50"} />
-                                        <StatBox icon={Droplets} label="Moisture" value={moistDisplay} color={isLive ? "text-emerald-500" : "text-gray-500"} bgColor={isLive ? "bg-emerald-50" : "bg-gray-50"} />
-                                        <StatBox icon={Sun} label="Light" value={lightDisplay} color={isLive ? "text-amber-500" : "text-gray-500"} bgColor={isLive ? "bg-amber-50" : "bg-gray-50"} />
-                                        <StatBox icon={CloudFog} label="Air Q (MQ2)" value={gasDisplay} color={isLive ? "text-purple-500" : "text-gray-500"} bgColor={isLive ? "bg-purple-50" : "bg-gray-50"} />
+                                        <StatBox icon={Thermometer} label="Temp" value={tempDisplay} color={isLive ? "text-orange-500" : "text-gray-400"} bgColor={isLive ? "bg-orange-50" : "bg-gray-50"} />
+                                        <StatBox icon={Wind} label="Humidity" value={humDisplay} color={isLive ? "text-blue-500" : "text-gray-400"} bgColor={isLive ? "bg-blue-50" : "bg-gray-50"} />
+                                        <StatBox icon={Droplets} label="Moisture" value={moistDisplay} color={isLive ? "text-emerald-500" : "text-gray-400"} bgColor={isLive ? "bg-emerald-50" : "bg-gray-50"} />
+                                        <StatBox icon={Sun} label="Light" value={lightDisplay} color={isLive ? "text-amber-500" : "text-gray-400"} bgColor={isLive ? "bg-amber-50" : "bg-gray-50"} />
+                                        <StatBox icon={CloudFog} label="Air Q (MQ2)" value={gasDisplay} color={isLive ? "text-purple-500" : "text-gray-400"} bgColor={isLive ? "bg-purple-50" : "bg-gray-50"} />
                                     </div>
                                 </div>
 
                                 <div className="relative z-10 pt-2">
                                     <button 
                                         onClick={() => togglePump(zone.id)} 
-                                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${isMotorActive ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                                        disabled={!isLive}
+                                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${!isLive ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : (isMotorActive ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-gray-900 text-white hover:bg-gray-800')}`}
                                     >
-                                        {isMotorActive ? 'Emergency Stop Motor' : 'Manual Override: Start Motor'}
+                                        {!isLive ? 'Offline (Not Connected)' : (isMotorActive ? 'Emergency Stop Motor' : 'Manual Override: Start Motor')}
                                     </button>
                                 </div>
                             </div>
