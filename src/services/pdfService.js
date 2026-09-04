@@ -96,7 +96,8 @@ export const generateBillPdf = (billData) => {
   return new File([blob], `${invoiceNumber}.pdf`, { type: 'application/pdf' });
 };
 
-export const downloadSettlementPDF = (data) => {
+export const generateSettlementPDFBase64 = (data) => {
+  return new Promise((resolve, reject) => {
   const adjustedPool = Math.max(0, data.grossRevenue - data.monthlyServiceFee);
   const soilReserve = adjustedPool * 0.10;
   const platformMargin = adjustedPool * 0.10;
@@ -227,11 +228,20 @@ export const downloadSettlementPDF = (data) => {
         <text x="660" y="48" font-size="16" font-weight="800" fill="#15803d" text-anchor="end">₹${clientPayout.toLocaleString('en-IN', {minimumFractionDigits: 2})}</text>
       </g>
 
+      <!-- PROMOTION & BRANDING -->
+      <g transform="translate(60, 785)">
+        <rect x="0" y="0" width="680" height="60" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" />
+        <rect x="15" y="10" width="135" height="20" rx="10" fill="#15803d" />
+        <text x="82" y="24" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">GROW WITH AGRINEX</text>
+        <text x="165" y="24" font-size="12" font-weight="700" fill="#14532d">Expand Your Farm Portfolio &amp; Earn Higher Yields</text>
+        <text x="15" y="47" font-size="11" font-weight="500" fill="#166534">Re-invest your harvest returns into new aeroponic &amp; hydroponic zones or refer partners for exclusive dividend rewards.</text>
+      </g>
+
       <!-- FOOTER -->
-      <g transform="translate(60, 800)">
+      <g transform="translate(60, 865)">
         <line x1="0" y1="0" x2="680" y2="0" stroke="#e5e7eb" stroke-width="1" />
-        <text x="340" y="25" font-size="11" fill="#9ca3af" text-anchor="middle">Thank you for partnering with AgriNex.</text>
-        <text x="340" y="42" font-size="11" fill="#9ca3af" text-anchor="middle">For queries regarding this statement, please contact support@agrinex.com</text>
+        <text x="340" y="22" font-size="11" fill="#9ca3af" text-anchor="middle">Thank you for partnering with AgriNex Smart Vertical Farming.</text>
+        <text x="340" y="38" font-size="11" fill="#9ca3af" text-anchor="middle">For queries regarding this statement, please contact support@agrinex.com | www.agrinex.com</text>
       </g>
     </svg>
   `;
@@ -259,9 +269,21 @@ export const downloadSettlementPDF = (data) => {
       format: [800, 1020]
     });
     pdf.addImage(imgData, 'JPEG', 0, 0, 800, 1020);
-    pdf.save(`Settlement_${finalId}.pdf`);
+    
+    const base64PDF = pdf.output('datauristring');
+    resolve({ pdf, finalId, base64PDF });
     
     URL.revokeObjectURL(blobURL);
   };
+  image.onerror = reject;
   image.src = blobURL;
+  });
+};
+
+export const downloadSettlementPDF = (data) => {
+  generateSettlementPDFBase64(data).then(({ pdf, finalId }) => {
+    pdf.save(`Settlement_${finalId}.pdf`);
+  }).catch(err => {
+    console.error("Error generating PDF:", err);
+  });
 };

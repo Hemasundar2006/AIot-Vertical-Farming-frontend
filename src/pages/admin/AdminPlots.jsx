@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Sprout, DollarSign, ArrowRight, Download, Plus, Mail, FileText, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
-import { downloadSettlementPDF } from '../../services/pdfService';
+import { downloadSettlementPDF, generateSettlementPDFBase64 } from '../../services/pdfService';
 import Pagination from '../../components/Pagination';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com/api';
@@ -87,20 +87,58 @@ const AdminPlots = () => {
     setProcessingSettlement(true);
     try {
       const token = localStorage.getItem('farm_token');
+      const yieldKgNum = Number(settlementForm.yieldKg);
+      const marketRateNum = Number(settlementForm.marketRate);
+      const monthlyFeeNum = Number(settlementForm.monthlyServiceFee || 0);
+      const grossRev = yieldKgNum * marketRateNum;
+
+      // Prepare preview data to generate statement PDF with AgriNex promotion
+      const statementPreviewData = {
+        clientName: selectedPlot.user?.name || 'Farmer / Investor',
+        plotNumber: selectedPlot.plotNumber || 'Unknown',
+        cropName: selectedPlot.cropType || 'Crop',
+        statementDate: new Date().toISOString(),
+        harvestDate: selectedPlot.harvestDate || new Date().toISOString(),
+        yieldKg: yieldKgNum,
+        marketRate: marketRateNum,
+        grossRevenue: grossRev,
+        monthlyServiceFee: monthlyFeeNum,
+        status: 'Settled'
+      };
+
+      // Generate the settlement PDF with AgriNex promotion
+      let pdfBase64 = null;
+      let generatedFinalId = null;
+      try {
+        const generated = await generateSettlementPDFBase64(statementPreviewData);
+        pdfBase64 = generated.base64PDF;
+        generatedFinalId = generated.finalId;
+        // Also download a local copy of the PDF for admin record
+        generated.pdf.save(`Settlement_${generatedFinalId}.pdf`);
+      } catch (pdfErr) {
+        console.warn('PDF pre-generation warning:', pdfErr);
+      }
+
+      const promotionalNote = "Grow your wealth with AgriNex Smart Vertical Farming! Re-invest in upcoming harvest cycles or refer fellow landowners to earn up to 5% bonus dividends.";
+
       const payload = {
         plotId: selectedPlot._id,
         userId: selectedPlot.user?._id || selectedPlot.user,
-        yieldKg: Number(settlementForm.yieldKg),
-        marketRate: Number(settlementForm.marketRate),
-        monthlyServiceFee: Number(settlementForm.monthlyServiceFee || 0)
+        yieldKg: yieldKgNum,
+        marketRate: marketRateNum,
+        monthlyServiceFee: monthlyFeeNum,
+        pdfBase64: pdfBase64,
+        pdfAttachment: pdfBase64,
+        promotionalMessage: promotionalNote,
+        promotionText: promotionalNote
       };
       
       const res = await axios.post(`${API_URL}/admin/settlements`, payload, { headers: { Authorization: `Bearer ${token}` } });
       
       const recipientEmail = selectedPlot.user?.email || 'the user';
       toast.success(
-        `Settlement processed! PDF statement & breakdown dispatched to ${recipientEmail}`,
-        { duration: 5000 }
+        `Settlement processed! PDF statement with AgriNex promotion attached & dispatched to ${recipientEmail}`,
+        { duration: 6000 }
       );
       
       setShowSettlementModal(false);
@@ -455,9 +493,9 @@ const AdminPlots = () => {
               <div className="flex items-start gap-2.5 bg-blue-50 border border-blue-200 p-3 rounded-xl text-xs text-blue-900">
                 <Mail className="text-blue-600 shrink-0 mt-0.5" size={16} />
                 <div>
-                  <span className="font-bold">Automated Email &amp; PDF Dispatch:</span>
+                  <span className="font-bold">Automated Email &amp; PDF Dispatch with AgriNex Promotion:</span>
                   <p className="text-blue-700 mt-0.5">
-                    Upon clicking Settle, the formal <span className="font-mono font-semibold">Settlement_STM-*.pdf</span> statement will be generated and emailed directly to <strong className="underline">{selectedPlot.user?.email || 'the user'}</strong> along with the detailed HTML statement breakdown.
+                    Upon clicking Settle, the formal <span className="font-mono font-semibold">Settlement_STM-*.pdf</span> statement (including the AgriNex investment &amp; growth promotion banner) will be generated, attached, and emailed directly to <strong className="underline">{selectedPlot.user?.email || 'the user'}</strong> along with payment breakdown details.
                   </p>
                 </div>
               </div>
@@ -478,11 +516,11 @@ const AdminPlots = () => {
                 >
                   {processingSettlement ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" /> Processing &amp; Emailing...
+                      <Loader2 size={16} className="animate-spin" /> Generating PDF &amp; Sending Mail...
                     </>
                   ) : (
                     <>
-                      <FileText size={16} /> Settle &amp; Dispatch Email
+                      <FileText size={16} /> Settle Payout &amp; Send PDF Mail
                     </>
                   )}
                 </button>
