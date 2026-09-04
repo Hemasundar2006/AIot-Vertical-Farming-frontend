@@ -1,5 +1,6 @@
 ﻿// API Service for Sensor Data
-const API_BASE_URL = 'https://aiot-vertical-farming-backend.onrender.com';
+const RAW_URL = import.meta.env?.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com';
+const API_BASE_URL = RAW_URL.replace(/\/api\/?$/, '');
 const ZONE3_BASE_URL = API_BASE_URL + '/api/zone3'; // Dedicated Zone 3 (2nd ESP32)
 
 /**

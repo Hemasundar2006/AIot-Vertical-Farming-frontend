@@ -5,319 +5,170 @@ import toast from 'react-hot-toast';
 
 const FarmContext = createContext();
 
-// Configuration
-const SOCKET_URL = 'https://aiot-vertical-farming-backend.onrender.com';
-const DATA_API_URL = 'https://aiot-vertical-farming-backend.onrender.com/get_temperature';
+const RAW_BASE = import.meta.env?.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com';
+const API_BASE = RAW_BASE.replace(/\/api\/?$/, '');
+const SOCKET_URL = API_BASE;
+// ESP32 #1 API: strictly Zones 1 & 2
+const DATA_API_URL = `${API_BASE}/get_temperature`;
+// ESP32 #2 API: dedicated separate route for Zone 3 ONLY
+const ZONE3_API_URL = `${API_BASE}/api/zone3/latest`;
 
-// Safe thresholds
 const THRESHOLDS = {
-  temperature: 30, // Celsius
-  humidity: 80, // Percent
-  moistureLow: 20, // Percent
+  temperature: 30,
+  humidity: 80,
+  moistureLow: 20,
   gasHigh: 2000,
 };
 
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
-    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
-    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } },
-    layer3: { id: 3, name: 'Sand', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false } }
+    layer1: { id: 1, name: 'Black Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false }, isLive: false, timestamp: null },
+    layer2: { id: 2, name: 'Red Soil', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false }, isLive: false, timestamp: null },
+    layer3: { id: 3, name: 'Sand (Zone 3)', temperature: 0, humidity: 0, moisture: 0, gas: 0, light: 0, motor: 'OFF', pumpInfo: { status: false }, isLive: false, timestamp: null }
   });
   const [lastUpdated, setLastUpdated] = useState('');
   const [history, setHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
-  // Keep track of manual overrides (starts empty so live API data is used by default)
   const manualOverrides = useRef({});
-
-  // Ref to keep track of previous values for alerts to avoid spamming
   const prevLayerState = useRef(layers);
 
-  // Initial Socket Connection (Optional for real-time control if backend supports it)
   useEffect(() => {
-    // Keep socket mainly for connectivity check or future use
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket'],
       reconnectionAttempts: 3,
       timeout: 5000
     });
-
     setSocket(newSocket);
-
-    newSocket.on('connect', () => {
-      console.log('Connected to WebSocket');
-    });
-
-    newSocket.on('connect_error', (err) => {
-      console.log('Socket connect error', err);
-    });
-
     return () => newSocket.close();
   }, []);
 
-  const resetLayersToOffline = () => {
-    setLayers(prev => {
-      const resetState = { ...prev };
-      Object.keys(resetState).forEach(key => {
-        const layer = resetState[key];
-        const zoneId = layer.id;
-        const override = manualOverrides.current[zoneId];
-
-        const defaultMoisture = override?.moisture ?? layer.moisture;
-        const defaultMotor = override?.motor ?? layer.motor;
-
-        resetState[key] = {
-          ...layer,
-          temperature: 0,
-          humidity: 0,
-          gas: 0,
-          light: 0,
-          moisture: defaultMoisture,
-          motor: defaultMotor,
-          pumpInfo: { status: defaultMotor === 'ON' }
-        };
-      });
-      return resetState;
-    });
-  };
-
-  // Polling Data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(DATA_API_URL);
-        const data = response.data;
+        const now = Date.now();
+        const FRESH_THRESHOLD_MS = 90000;
 
-        if (data) {
-          setIsDemoMode(false);
-          let isFresh = true;
-          if (data.timestamp) {
-            const timestamp = new Date(data.timestamp);
-            const formattedTime = timestamp.toLocaleString();
-            setLastUpdated(prev => (prev !== formattedTime ? formattedTime : prev));
-            // Check if timestamp is fresh (within 90 seconds)
-            isFresh = (new Date() - timestamp) < 90000;
+        // 1. Fetch Zones 1 & 2 from /get_temperature (ESP32 #1)
+        let zones1and2 = [];
+        try {
+          const res = await axios.get(DATA_API_URL, { timeout: 4000 });
+          if (res.data?.zones && Array.isArray(res.data.zones)) {
+            zones1and2 = res.data.zones;
+          }
+        } catch (err) {}
+
+        // 2. Fetch Zone 3 from dedicated separate route /api/zone3/latest (ESP32 #2)
+        let zone3Data = null;
+        try {
+          const z3Res = await axios.get(ZONE3_API_URL, { timeout: 4000 });
+          if (z3Res.data?.data) {
+            zone3Data = z3Res.data.data;
+          }
+        } catch (err) {}
+
+        setLayers(prev => {
+          const newLayers = { ...prev };
+          let hasChanges = false;
+
+          // Update Zones 1 & 2
+          zones1and2.forEach(z => {
+            const id = Number(z.id || z.zoneId);
+            const layerKey = id === 1 ? 'layer1' : id === 2 ? 'layer2' : null;
+            if (!layerKey || !newLayers[layerKey]) return;
+
+            const curr = newLayers[layerKey];
+            const ts = z.timestamp ? new Date(z.timestamp).getTime() : 0;
+            const isLive = ts > 0 && (now - ts) < FRESH_THRESHOLD_MS;
+
+            newLayers[layerKey] = {
+              ...curr,
+              // If live: show live values. If offline: 0
+              temperature: isLive ? (z.temperature ?? z.temp ?? 0) : 0,
+              humidity: isLive ? (z.humidity ?? z.hum ?? 0) : 0,
+              moisture: isLive ? (z.soil ?? 0) : 0,
+              gas: isLive ? (z.gas ?? 0) : 0,
+              light: isLive ? (z.light ?? 0) : 0,
+              motor: isLive ? (z.motor || 'OFF') : 'OFF',
+              pumpInfo: { status: isLive && z.motor === 'ON' },
+              isLive: isLive,
+              timestamp: z.timestamp
+            };
+            hasChanges = true;
+          });
+
+          // Update Zone 3: STRICTLY only show values if live payload received within 90s!
+          if (zone3Data) {
+            const curr3 = newLayers.layer3;
+            const ts3 = zone3Data.timestamp ? new Date(zone3Data.timestamp).getTime() : 0;
+            const isLive3 = ts3 > 0 && (now - ts3) < FRESH_THRESHOLD_MS;
+
+            newLayers.layer3 = {
+              ...curr3,
+              temperature: isLive3 ? (zone3Data.temperature ?? 0) : 0,
+              humidity: isLive3 ? (zone3Data.humidity ?? 0) : 0,
+              moisture: isLive3 ? (zone3Data.soil ?? 0) : 0,
+              gas: isLive3 ? (zone3Data.gas ?? 0) : 0,
+              light: isLive3 ? (zone3Data.light ?? 0) : 0,
+              motor: isLive3 ? (zone3Data.motor || 'OFF') : 'OFF',
+              pumpInfo: { status: isLive3 && zone3Data.motor === 'ON' },
+              isLive: isLive3,
+              timestamp: zone3Data.timestamp
+            };
+            hasChanges = true;
           }
 
-          setIsConnected(prev => (prev !== isFresh ? isFresh : prev));
-
-          if (isFresh) {
-            updateLayersFromApi(data);
-          } else {
-            resetLayersToOffline();
+          if (hasChanges) {
+            setIsConnected(true);
+            setLastUpdated(new Date().toLocaleTimeString());
           }
-        } else {
-          setIsConnected(prev => (prev !== false ? false : prev));
-          setIsDemoMode(false);
-          resetLayersToOffline();
-        }
+          return newLayers;
+        });
+
       } catch (error) {
         console.error("Error fetching farm data:", error);
-        setIsConnected(prev => (prev !== false ? false : prev));
-        setIsDemoMode(false);
-        resetLayersToOffline();
       }
     };
 
-    // Fetch immediately
     fetchData();
-
-    // Poll every 3 seconds
     const interval = setInterval(fetchData, 3000);
-
     return () => clearInterval(interval);
   }, []);
-
-  const updateLayersFromApi = (apiData) => {
-    if (!apiData) return;
-
-    let zonesList = [];
-    const root = apiData.data || apiData;
-
-    if (Array.isArray(root)) {
-      zonesList = root;
-    } else if (Array.isArray(root.zones)) {
-      zonesList = root.zones;
-    } else if (root.id !== undefined) {
-      zonesList = [root];
-    } else if (typeof root === 'object') {
-      ['zone1', 'zone2', 'zone3', 'z1', 'z2', 'z3', '1', '2', '3'].forEach((k) => {
-        if (root[k] && typeof root[k] === 'object') {
-          const numId = Number(k.replace(/\D/g, '')) || (k === 'zone1' || k === 'z1' ? 1 : k === 'zone2' || k === 'z2' ? 2 : 3);
-          zonesList.push({ id: numId, ...root[k] });
-        }
-      });
-    }
-
-    setLayers(prev => {
-        const newLayers = { ...prev };
-        let hasChanges = false;
-
-        zonesList.forEach(zone => {
-            if (!zone || typeof zone !== 'object') return;
-
-            const zoneId = Number(zone.id || zone.zoneId || (zone.zone ? String(zone.zone).replace(/\D/g, '') : null));
-            let layerKey = null;
-
-            // Map zone id to layer key
-            if (zoneId === 1) layerKey = 'layer1';
-            else if (zoneId === 2) layerKey = 'layer2';
-            else if (zoneId === 3) layerKey = 'layer3';
-
-            if (layerKey && newLayers[layerKey]) {
-                const rawMotor = zone.motor !== undefined ? zone.motor : (zone.relay !== undefined ? zone.relay : zone.motor_status);
-                const rawSoil = zone.soil !== undefined && zone.soil !== null ? Number(zone.soil) : (zone.moisture !== undefined && zone.moisture !== null ? Number(zone.moisture) : null);
-
-                // Use manual override if user explicitly set one in Zone Control; otherwise use raw API soil value
-                let currentMoisture;
-                if (manualOverrides.current[zoneId]?.moisture !== undefined) {
-                  currentMoisture = manualOverrides.current[zoneId].moisture;
-                } else if (rawSoil !== null && !isNaN(rawSoil)) {
-                  currentMoisture = rawSoil;
-                } else {
-                  currentMoisture = newLayers[layerKey].moisture;
-                }
-
-                let motorState = newLayers[layerKey].motor || 'OFF';
-
-                // Threshold logic: > 70 motor is OFF, < 30 motor is ON
-                if (currentMoisture > 70) {
-                  motorState = 'OFF';
-                } else if (currentMoisture < 30) {
-                  motorState = 'ON';
-                } else if (rawMotor !== undefined && rawMotor !== null) {
-                  const strVal = String(rawMotor).trim().toUpperCase();
-                  if (strVal === 'ON' || strVal === 'TRUE' || rawMotor === true || rawMotor === 1) {
-                    motorState = 'ON';
-                  } else {
-                    motorState = 'OFF';
-                  }
-                }
-
-                const isMotorOn = motorState === 'ON';
-                const currentLayer = newLayers[layerKey];
-
-                const updatedLayer = {
-                    ...currentLayer,
-                    temperature: zone.temperature !== undefined ? zone.temperature : (zone.temp !== undefined ? zone.temp : currentLayer.temperature),
-                    humidity: zone.humidity !== undefined ? zone.humidity : (zone.hum !== undefined ? zone.hum : currentLayer.humidity),
-                    moisture: currentMoisture,
-                    gas: zone.gas !== undefined ? zone.gas : currentLayer.gas,
-                    light: zone.light !== undefined ? zone.light : currentLayer.light,
-                    motor: motorState,
-                    pumpInfo: {
-                      ...currentLayer.pumpInfo,
-                      status: isMotorOn
-                    }
-                };
-
-                // Apply any manual overrides if they exist for this zone
-                if (manualOverrides.current[zoneId]) {
-                    const override = manualOverrides.current[zoneId];
-                    updatedLayer.motor = override.motor;
-                    updatedLayer.moisture = override.moisture;
-                    updatedLayer.pumpInfo = {
-                        ...updatedLayer.pumpInfo,
-                        status: override.pumpInfo.status
-                    };
-                }
-
-                // Check if anything actually changed
-                if (
-                  currentLayer.temperature !== updatedLayer.temperature ||
-                  currentLayer.humidity !== updatedLayer.humidity ||
-                  currentLayer.moisture !== updatedLayer.moisture ||
-                  currentLayer.gas !== updatedLayer.gas ||
-                  currentLayer.light !== updatedLayer.light ||
-                  currentLayer.motor !== updatedLayer.motor
-                ) {
-                  hasChanges = true;
-                }
-
-                newLayers[layerKey] = updatedLayer;
-            }
-        });
-
-        if (!hasChanges) {
-          return prev; // Return unchanged reference so React skips re-rendering!
-        }
-
-        checkAlerts(newLayers);
-        return newLayers;
-    });
-  };
-
-  const checkAlerts = (currentLayers) => {
-    Object.keys(currentLayers).forEach(key => {
-      const layer = currentLayers[key];
-      if (layer.temperature > THRESHOLDS.temperature && prevLayerState.current[key].temperature <= THRESHOLDS.temperature) {
-        toast.error(`High Temp in ${layer.name}: ${layer.temperature}°C`);
-      }
-    });
-    prevLayerState.current = currentLayers;
-  };
 
   const togglePump = async (layerId) => {
     const layerKey = Object.keys(layers).find(key => layers[key].id === layerId);
     if (!layerKey) return;
 
-    const currentStatus = layers[layerKey].pumpInfo.status;
+    const currentStatus = layers[layerKey].pumpInfo?.status;
     const newStatus = !currentStatus;
 
-    await controlZoneManual(layerId, newStatus);
+    await controlZoneManual(layerId, !newStatus);
   };
 
   const controlZoneManual = async (layerId, isHighMoisture) => {
-    // Clicking ON button (isHighMoisture = true): Moisture increases to > 70 -> Motor shows OFF
-    // Clicking OFF button (isHighMoisture = false): Moisture decreases to < 30 -> Motor shows ON
-    let newMoisture;
-    let newMotorState;
-    let turnOnMotor;
+    const turnOnMotor = !isHighMoisture;
+    const newMotorState = turnOnMotor ? 'ON' : 'OFF';
 
-    if (isHighMoisture) {
-      // ON button -> moisture > 70 -> motor OFF
-      newMoisture = Math.floor(Math.random() * (88 - 72 + 1)) + 72; // > 70
-      newMotorState = 'OFF';
-      turnOnMotor = false;
-    } else {
-      // OFF button -> moisture < 30 -> motor ON
-      newMoisture = Math.floor(Math.random() * (28 - 15 + 1)) + 15; // < 30
-      newMotorState = 'ON';
-      turnOnMotor = true;
-    }
+    toast.success(`Zone ${layerId}: Motor set to ${newMotorState}`);
 
-    toast.success(`Zone ${layerId}: Moisture set to ${newMoisture}% (${isHighMoisture ? '>70' : '<30'}). Motor ${newMotorState}`);
-
-    // Call ThingSpeak API silently in background (no popup errors)
     const thingspeakUrl = `https://api.thingspeak.com/update?api_key=SW3VZ01ZZFG7J7TN&field${layerId}=${turnOnMotor ? 1 : 0}`;
-    axios.get(thingspeakUrl).catch(e => {
-        console.error("Silent ThingSpeak sync:", e?.message);
-    });
+    axios.get(thingspeakUrl).catch(() => {});
 
-    // Set local override
     manualOverrides.current[layerId] = {
       motor: newMotorState,
-      moisture: newMoisture,
       pumpInfo: { status: turnOnMotor }
     };
 
-    // Send update to Backend API so backend persists state for all devices
     try {
-      axios.post('https://aiot-vertical-farming-backend.onrender.com/api/zone-control', {
+      axios.post(`${API_BASE}/api/zone-control`, {
         zoneId: layerId,
         isHighMoisture: isHighMoisture,
-        soil: newMoisture,
         motor: newMotorState
-      }, { timeout: 4000 }).catch(err => {
-        console.error("Backend zone-control POST log:", err?.message);
-      });
-    } catch (e) {
-      console.error("Zone control sync error:", e);
-    }
+      }, { timeout: 4000 }).catch(() => {});
+    } catch (e) {}
 
-    // Optimistically update context state locally
     setLayers(prev => {
       const layerKey = Object.keys(prev).find(key => prev[key].id === layerId);
       if (!layerKey) return prev;
@@ -327,7 +178,6 @@ export const FarmProvider = ({ children }) => {
         [layerKey]: {
           ...prev[layerKey],
           motor: newMotorState,
-          moisture: newMoisture,
           pumpInfo: { ...prev[layerKey].pumpInfo, status: turnOnMotor }
         }
       };

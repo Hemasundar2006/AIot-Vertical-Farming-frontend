@@ -1,12 +1,12 @@
-﻿/**
+/**
  * Zone 3 API Service
  * Handles all requests to the dedicated Zone 3 endpoints
  * (data received from the 2nd ESP32).
- *
- * Base: https://aiot-vertical-farming-backend.onrender.com/api/zone3
  */
 
-const BASE = 'https://aiot-vertical-farming-backend.onrender.com/api/zone3';
+const RAW_BASE = import.meta.env?.VITE_API_URL || 'https://aiot-vertical-farming-backend.onrender.com';
+const API_ROOT = RAW_BASE.replace(/\/api\/?$/, '');
+const BASE = `${API_ROOT}/api/zone3`;
 
 // helper
 const get = async (path) => {
