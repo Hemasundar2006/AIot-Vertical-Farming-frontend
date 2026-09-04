@@ -11,13 +11,6 @@ const SOCKET_URL = API_BASE;
 const DATA_API_URL = `${API_BASE}/get_temperature`;
 const ZONE3_API_URL = `${API_BASE}/api/zone3/latest`;
 
-const THRESHOLDS = {
-  temperature: 30,
-  humidity: 80,
-  moistureLow: 20,
-  gasHigh: 2000,
-};
-
 export const FarmProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [layers, setLayers] = useState({
@@ -31,7 +24,6 @@ export const FarmProvider = ({ children }) => {
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   const manualOverrides = useRef({});
-  const prevLayerState = useRef(layers);
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
@@ -47,7 +39,7 @@ export const FarmProvider = ({ children }) => {
     const fetchData = async () => {
       try {
         const now = Date.now();
-        const FRESH_WINDOW_MS = 120000; // 2 minutes
+        const FRESH_WINDOW_MS = 180000; // 3 minutes
 
         // 1. Fetch Zones 1 & 2 from /get_temperature
         let zonesData = [];
@@ -64,7 +56,6 @@ export const FarmProvider = ({ children }) => {
         let zone3Data = null;
         try {
           const z3Res = await axios.get(ZONE3_API_URL, { timeout: 4000 });
-          // If server returns data (only returned when ESP32-3 is connected)
           if (z3Res.data?.data) {
             zone3Data = z3Res.data.data;
           }
@@ -84,52 +75,37 @@ export const FarmProvider = ({ children }) => {
             const ts = rawTs ? new Date(rawTs).getTime() : 0;
             const isLive = ts > 0 && (now - ts) < FRESH_WINDOW_MS;
 
-            // ONLY show values if live ESP32 data is connected! Otherwise null/no values
             newLayers[layerKey] = {
               ...curr,
-              temperature: isLive ? (z.temperature ?? z.temp ?? null) : null,
-              humidity: isLive ? (z.humidity ?? z.hum ?? null) : null,
-              moisture: isLive ? ((z.soil !== undefined && z.soil !== null) ? Number(z.soil) : null) : null,
-              gas: isLive ? (z.gas ?? null) : null,
-              light: isLive ? (z.light ?? null) : null,
-              motor: isLive ? (manualOverrides.current[id]?.motor || (z.motor ? String(z.motor).toUpperCase() : 'OFF')) : 'OFF',
-              pumpInfo: { status: isLive && z.motor === 'ON' },
+              temperature: z.temperature ?? z.temp ?? curr.temperature,
+              humidity: z.humidity ?? z.hum ?? curr.humidity,
+              moisture: ((z.soil !== undefined && z.soil !== null) ? Number(z.soil) : curr.moisture),
+              gas: z.gas ?? curr.gas,
+              light: z.light ?? curr.light,
+              motor: manualOverrides.current[id]?.motor || (z.motor ? String(z.motor).toUpperCase() : (curr.motor || 'OFF')),
+              pumpInfo: { status: z.motor === 'ON' },
               isLive: isLive,
-              timestamp: isLive ? rawTs : null
+              timestamp: rawTs || curr.timestamp
             };
           });
 
-          // Zone 3 (ESP32 #2): Check if connected
-          const curr3 = newLayers.layer3;
+          // Zone 3 (ESP32 #2)
           if (zone3Data) {
+            const curr3 = newLayers.layer3;
             const ts3 = zone3Data.timestamp ? new Date(zone3Data.timestamp).getTime() : 0;
             const isLive3 = ts3 > 0 && (now - ts3) < FRESH_WINDOW_MS;
 
             newLayers.layer3 = {
               ...curr3,
-              temperature: isLive3 ? (zone3Data.temperature ?? null) : null,
-              humidity: isLive3 ? (zone3Data.humidity ?? null) : null,
-              moisture: isLive3 ? ((zone3Data.soil !== undefined && zone3Data.soil !== null) ? Number(zone3Data.soil) : null) : null,
-              gas: isLive3 ? (zone3Data.gas ?? null) : null,
-              light: isLive3 ? (zone3Data.light ?? null) : null,
-              motor: isLive3 ? (zone3Data.motor || 'OFF') : 'OFF',
-              pumpInfo: { status: isLive3 && zone3Data.motor === 'ON' },
+              temperature: zone3Data.temperature ?? curr3.temperature,
+              humidity: zone3Data.humidity ?? curr3.humidity,
+              moisture: ((zone3Data.soil !== undefined && zone3Data.soil !== null) ? Number(zone3Data.soil) : curr3.moisture),
+              gas: zone3Data.gas ?? curr3.gas,
+              light: zone3Data.light ?? curr3.light,
+              motor: zone3Data.motor || curr3.motor || 'OFF',
+              pumpInfo: { status: zone3Data.motor === 'ON' },
               isLive: isLive3,
-              timestamp: isLive3 ? zone3Data.timestamp : null
-            };
-          } else {
-            // ESP32-3 NOT connected -> show NO VALUES
-            newLayers.layer3 = {
-              ...curr3,
-              temperature: null,
-              humidity: null,
-              moisture: null,
-              gas: null,
-              light: null,
-              motor: 'OFF',
-              pumpInfo: { status: false },
-              isLive: false,
-              timestamp: null
+              timestamp: zone3Data.timestamp || curr3.timestamp
             };
           }
 
@@ -150,7 +126,7 @@ export const FarmProvider = ({ children }) => {
 
   const togglePump = async (layerId) => {
     const layerKey = Object.keys(layers).find(key => layers[key].id === layerId);
-    if (!layerKey || !layers[layerKey].isLive) return;
+    if (!layerKey) return;
 
     const currentStatus = layers[layerKey].pumpInfo?.status;
     const newStatus = !currentStatus;
